@@ -4,8 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import Bridge from "./Icons/Bridge";
-import Logo from "./Icons/Logo";
 import Modal from "./Modal";
 import Carousel3D from "./Carousel3D";
 import type { ImageProps } from "../utils/types";
@@ -13,9 +11,10 @@ import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
 
 interface GalleryProps {
   images: ImageProps[];
+  motionImages?: ImageProps[];
 }
 
-export default function Gallery({ images }: GalleryProps) {
+export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const searchParams = useSearchParams();
   const photoId = searchParams.get("photoId");
   const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
@@ -30,36 +29,58 @@ export default function Gallery({ images }: GalleryProps) {
     }
   }, [photoId, lastViewedPhoto, setLastViewedPhoto]);
 
-  const carouselImages = [
-    "/images/공익 포스터.jpg",
+  // 1번 모션: 모바일 디자인.jpg
+  const mobileDesignImage = images.find(
+    (img) => img.src === "/images/모바일 디자인.jpg"
+  );
+
+  // 3번 모션: 동화책 페이지 이미지들 (오른쪽에서 왼쪽으로 페이지 넘김)
+  const storySrcs = [
     "/images/동화_표지.jpg",
-    "/images/북커버.png",
-    "/images/패키지.png",
-    "/images/책자 썸네일.jpg",
+    "/images/동화1.jpg",
+    "/images/동화2.jpg",
   ];
+  const storyImages = storySrcs
+    .map((src) => images.find((img) => img.src === src))
+    .filter((img): img is ImageProps => img !== undefined);
 
-  const carouselTitles = [
-    "공익 포스터",
-    "동화 표지",
-    "북커버",
-    "패키지",
-    "책자",
-  ];
+  // 모션에 이미 사용되는 이미지들은 갤러리에서 클릭해도 모달이 뜨지 않도록 처리
+  const nonClickableSrcSet = new Set<string>([
+    "/images/모바일 디자인.jpg",
+    ...storySrcs,
+  ]);
 
-  // 캐러셀 이미지 데이터 찾기
-  const carouselImageData = carouselImages.map((src) => {
-    return images.find((img) => img.src === src);
-  }).filter((img): img is ImageProps => img !== undefined);
+  // 캐러셀에 전달할 모션 이미지 시퀀스:
+  // 1번: 모바일 디자인 (세로 스크롤)
+  // 2번: public/motion 폴더의 이미지들 (3D 캐러셀)
+  // 3번: 동화책 페이지 넘김
+  const carouselImageData: ImageProps[] = [];
+  if (mobileDesignImage) carouselImageData.push(mobileDesignImage);
+
+  if (motionImages.length > 0) {
+    // 모션 2에서 시작 이미지를 책자 썸네일로 고정
+    const thumbnail = motionImages.find((img) =>
+      img.src.endsWith("/책자 썸네일.jpg")
+    );
+    const rest = motionImages.filter(
+      (img) => !img.src.endsWith("/책자 썸네일.jpg")
+    );
+
+    if (thumbnail) {
+      carouselImageData.push(thumbnail, ...rest);
+    } else {
+      carouselImageData.push(...motionImages);
+    }
+  }
 
   return (
     <>
-      {/* 3D 캐러셀 - 최상단 */}
-      <div className="w-full">
-        <Carousel3D 
-          imageData={carouselImageData} 
-          titles={carouselTitles}
-        />
-      </div>
+      {/* 모션 캐러셀 - 최상단 (작업 이미지 모달 열렸을 때는 숨김) */}
+      {!photoId && (
+        <div className="w-full">
+          <Carousel3D imageData={carouselImageData} thirdImages={storyImages} />
+        </div>
+      )}
       <main className="mx-auto max-w-[1960px] p-4">
         {photoId && (
           <Modal
@@ -75,33 +96,49 @@ export default function Gallery({ images }: GalleryProps) {
             const rowImages = images.filter((img) => img.row === rowNum);
             return (
               <div key={rowNum} className="contents">
-                {rowImages.map(({ id, src, width, height, blurDataUrl }, idx) => (
-                  <div
-                    key={id}
-                    className={idx === rowImages.length - 1 ? "break-after-column" : ""}
-                  >
-                    <Link
-                      href={`/?photoId=${id}`}
-                      ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
-                      className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
-                    >
-                      <Image
-                        alt="Portfolio work"
-                        className="transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110"
-                        style={{ transform: "translate3d(0, 0, 0)" }}
-                        placeholder={blurDataUrl ? "blur" : "empty"}
-                        blurDataURL={blurDataUrl}
-                        src={src}
-                        width={width}
-                        height={height}
-                        sizes="(max-width: 640px) 100vw,
+                {rowImages.map(({ id, src, width, height, blurDataUrl }, idx) => {
+                  const isNonClickable = nonClickableSrcSet.has(src);
+
+                  const imageEl = (
+                    <Image
+                      alt="Portfolio work"
+                      className={`transform rounded-lg brightness-90 transition will-change-auto ${
+                        isNonClickable ? "" : "group-hover:brightness-110"
+                      }`}
+                      style={{ transform: "translate3d(0, 0, 0)" }}
+                      placeholder={blurDataUrl ? "blur" : "empty"}
+                      blurDataURL={blurDataUrl}
+                      src={src}
+                      width={width}
+                      height={height}
+                      sizes="(max-width: 640px) 100vw,
                           (max-width: 1280px) 50vw,
                           (max-width: 1536px) 33vw,
                           25vw"
-                      />
-                    </Link>
-                  </div>
-                ))}
+                    />
+                  );
+
+                  return (
+                    <div
+                      key={id}
+                      className={idx === rowImages.length - 1 ? "break-after-column" : ""}
+                    >
+                      {isNonClickable ? (
+                        <div className="relative mb-5 block w-full cursor-default">
+                          {imageEl}
+                        </div>
+                      ) : (
+                        <Link
+                          href={`/?photoId=${id}`}
+                          ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
+                          className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
+                        >
+                          {imageEl}
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             );
           })}

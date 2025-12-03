@@ -1,201 +1,353 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ImageProps } from "../utils/types";
 
 interface Carousel3DProps {
-  imageData: ImageProps[]; // 이미지 정보 배열
-  titles?: string[];
-  slideSpeed?: number; // 슬라이드 속도 (기본값: 0.5)
+  imageData: ImageProps[];      // 1, 2번 모션용
+  thirdImages?: ImageProps[];   // 3번 모션(동화책)용
 }
 
 export default function Carousel3D({
   imageData,
-  titles,
-  slideSpeed = 0.5
+  thirdImages = [],
 }: Carousel3DProps) {
+  const [scrollPosition, setScrollPosition] = useState(0);
+  // phase 순서: "second"(보도니 3D 캐러셀) -> "first"(모바일 세로 스크롤) -> "third"(동화책)
+  const [phase, setPhase] = useState<"first" | "second" | "third">("second");
+  const [currentIndex, setCurrentIndex] = useState(0); // 2번 모션용
+  const [pageIndex, setPageIndex] = useState(0);       // 3번 모션용
+  const [transitioningToFirst, setTransitioningToFirst] = useState(false);
+  const [transitioningToThird, setTransitioningToThird] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const imageWrapperRef = useRef<HTMLDivElement>(null);
+  const [imageHeight, setImageHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+
+  // 1번 모션용 첫 번째 이미지 (세로 스크롤), 나머지는 2번 모션용 3D 캐러셀
+  const firstImage = imageData[0];
+  const secondMotionImages = imageData.slice(1);
 
   useEffect(() => {
     setMounted(true);
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (containerRef.current) {
+      setContainerHeight(containerRef.current.clientHeight);
+    }
   }, []);
 
+  // phase 전환 시 필요한 상태 리셋
   useEffect(() => {
-    if (!mounted) return;
+    if (phase === "first") {
+      setScrollPosition(0);
+    } else if (phase === "second") {
+      setCurrentIndex(0);
+    } else if (phase === "third") {
+      setPageIndex(0);
+    }
+  }, [phase]);
+
+  // 이미지 로드 후 높이 계산
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    // 실제 렌더링된 이미지 높이 가져오기
+    if (imageWrapperRef.current) {
+      const actualHeight = imageWrapperRef.current.scrollHeight;
+      setImageHeight(actualHeight);
+    }
+  };
+
+  // 1번 모션: 한 페이지씩 스크롤하고 1.5초 대기 반복 (3번 스크롤 후 4번째에서 3번 모션으로 전환)
+  useEffect(() => {
+    if (!firstImage || !mounted || imageHeight === 0 || containerHeight === 0 || phase !== "first") {
+      return;
+    }
+
+    const maxScroll = Math.max(0, imageHeight - containerHeight);
+    if (maxScroll <= 0) return;
+
+    let timeoutId: NodeJS.Timeout | null = null;
+    let transitionTimeout: NodeJS.Timeout | null = null;
+    let currentStep = 0;
+
+    const scrollStep = () => {
+      const nextPosition = (currentStep + 1) * containerHeight;
+      const clampedPosition = Math.min(nextPosition, maxScroll);
+
+      // 한 페이지만큼 스크롤
+      setScrollPosition(clampedPosition);
+      currentStep++;
+
+      // 3번 스크롤 이후, 4번째 스크롤 직전에 3번 모션으로 부드럽게 전환
+      if (currentStep >= 4 || clampedPosition >= maxScroll) {
+        setTransitioningToThird(true);
+        transitionTimeout = setTimeout(() => {
+          setPhase("third");
+          setTransitioningToThird(false);
+        }, 500);
+        return;
+      }
+
+      // 1.5초 대기 후 다음 스크롤
+      timeoutId = setTimeout(() => {
+        scrollStep();
+      }, 1500);
+    };
+
+    // 모션이 시작되면 즉시 첫 스크롤을 실행
+    scrollStep();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (transitionTimeout) clearTimeout(transitionTimeout);
+    };
+  }, [firstImage, imageHeight, containerHeight, mounted, phase]);
+
+  // 2번 모션: 3D 캐러셀 회전
+  useEffect(() => {
+    if (!mounted || phase !== "second" || secondMotionImages.length === 0) return;
+
+    setCurrentIndex(0);
+
+    let transitionTimeout: NodeJS.Timeout | null = null;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % imageData.length);
-    }, 3000); // 3초마다 자동 슬라이드
+      setCurrentIndex((prev) => {
+        const next = (prev + 1) % secondMotionImages.length;
 
-    return () => clearInterval(interval);
-  }, [imageData.length, mounted]);
+        const currentImg = secondMotionImages[prev];
+        const nextImg = secondMotionImages[next];
 
-  // 중앙에서의 거리 계산
-  const getDistanceFromCenter = (index: number) => {
-    const distance = Math.abs(index - currentIndex);
-    const wrappedDistance = Math.min(distance, imageData.length - distance);
-    return wrappedDistance;
-  };
+        // 책자 3.jpg 에서 책자 4.jpg 로 넘어갈 때 2번 모션(모바일)으로 전환
+        if (
+          currentImg?.src.endsWith("/책자 3.jpg") &&
+          nextImg?.src.endsWith("/책자 4.jpg")
+        ) {
+          clearInterval(interval);
+          setTransitioningToFirst(true);
+          transitionTimeout = setTimeout(() => {
+            setPhase("first");
+            setTransitioningToFirst(false);
+          }, 500); // 부드러운 페이드 아웃 후 전환
+        }
 
-  // 이미지 스타일 계산 함수 (원본 비율 유지)
-  const getImageConfig = (index: number, image: ImageProps) => {
-    const distance = getDistanceFromCenter(index);
-    // 현재 인덱스와의 차이 계산 (순환 고려)
-    let diff = index - currentIndex;
-    if (Math.abs(diff) > imageData.length / 2) {
-      diff = diff > 0 ? diff - imageData.length : diff + imageData.length;
-    }
-    const normalizedDiff = diff;
+        return next;
+      });
+    }, 2000);
 
-    // 원본 비율 계산
-    const aspectRatio = image.width / image.height;
+    return () => {
+      clearInterval(interval);
+      if (transitionTimeout) clearTimeout(transitionTimeout);
+    };
+  }, [mounted, phase, secondMotionImages.length]);
 
-    // 최대 표시 크기 (비율 유지) - 오른쪽 배치에 맞게 조정
-    let maxWidth: number;
-    let maxHeight: number;
+  // 3번 모션: 동화책 페이지 넘기기 (오른쪽 → 왼쪽 슬라이드)
+  useEffect(() => {
+    if (!mounted || phase !== "third" || thirdImages.length === 0) return;
 
-    if (distance === 0) {
-      // 중앙 이미지 - 원본 크기 유지 (최대 크기 제한)
-      maxWidth = isMobile ? 350 : 450;
-      maxHeight = isMobile ? 450 : 600;
-    } else if (distance === 1) {
-      // 좌우 이미지 - 75% 크기
-      maxWidth = isMobile ? 260 : 340;
-      maxHeight = isMobile ? 340 : 450;
-    } else {
-      // 더 멀리 있는 이미지 - 50% 크기
-      maxWidth = isMobile ? 175 : 225;
-      maxHeight = isMobile ? 225 : 300;
-    }
+    setPageIndex(0);
+    let timeoutId: NodeJS.Timeout | null = null;
+    let phaseTimeout: NodeJS.Timeout | null = null;
 
-    // 비율에 맞춰 실제 크기 계산
-    let displayWidth = maxWidth;
-    let displayHeight = maxWidth / aspectRatio;
+    const goNext = () => {
+      setPageIndex((prev) => {
+        if (prev >= thirdImages.length - 1) {
+          // 마지막 페이지를 다 보여준 뒤 1번 모션(보도니 3D)으로 전환
+          if (!phaseTimeout) {
+            phaseTimeout = setTimeout(() => {
+              setPhase("second");
+            }, 1500);
+          }
+          return prev;
+        }
+        const next = prev + 1;
+        timeoutId = setTimeout(goNext, 1500);
+        return next;
+      });
+    };
 
-    if (displayHeight > maxHeight) {
-      displayHeight = maxHeight;
-      displayWidth = maxHeight * aspectRatio;
-    }
+    timeoutId = setTimeout(goNext, 1500);
 
-    if (distance === 0) {
-      return {
-        width: displayWidth,
-        height: displayHeight,
-        transform: 'perspective(1000px) rotateY(0deg)',
-        opacity: 1,
-        filter: 'blur(0px)',
-        zIndex: 10,
-      };
-    } else if (distance === 1) {
-      const rotateY = normalizedDiff < 0 ? -20 : 20;
-      return {
-        width: displayWidth,
-        height: displayHeight,
-        transform: `perspective(1000px) rotateY(${rotateY}deg)`,
-        opacity: 0.7,
-        filter: 'blur(1px)',
-        zIndex: 5,
-      };
-    } else {
-      return {
-        width: displayWidth,
-        height: displayHeight,
-        transform: 'perspective(1000px) rotateY(0deg)',
-        opacity: 0.4,
-        filter: 'blur(3px)',
-        zIndex: 1,
-      };
-    }
-  };
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (phaseTimeout) clearTimeout(phaseTimeout);
+    };
+  }, [mounted, phase, thirdImages.length]);
+
+  if (!firstImage) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center bg-black py-20">
+        {/* 이미지를 찾을 수 없습니다 */}
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="flex min-h-[80vh] items-center justify-center bg-black py-20 overflow-hidden"
-    >
+    <div className="flex min-h-[88vh] items-center justify-center lg:justify-end bg-black py-10 px-4">
       <div
         ref={containerRef}
-        className="relative w-full max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16"
+        style={{ height: "88vh" }}
       >
-        {/* 왼쪽 텍스트 영역 - 나중에 텍스트 추가 가능 */}
-        <div className="hidden lg:block"></div>
+        {phase === "first" && (
+          <div
+            className="relative w-full h-full overflow-hidden transition-opacity duration-500 ease-in-out"
+            style={{
+              height: "88vh",
+              opacity: transitioningToThird ? 0 : 1,
+            }}
+          >
+            {/* 위쪽 블러 / 그라데이션 */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-gradient-to-b from-black via-black/60 to-transparent" />
+            {/* 아래쪽 블러 / 그라데이션 */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-black via-black/60 to-transparent" />
 
-        {/* 오른쪽 캐러셀 영역 테스트 용 ..*/}
-        <div className="relative h-[500px] sm:h-[600px] lg:h-[700px] flex items-center justify-center lg:justify-end">
-          {imageData.map((image, index) => {
-            const config = mounted ? getImageConfig(index, image) : {
-              width: 400,
-              height: 500,
-              transform: 'perspective(1000px) rotateY(0deg)',
-              opacity: 1,
-              filter: 'blur(0px)',
-              zIndex: 10,
-            };
+            <div
+              ref={imageWrapperRef}
+              className="relative w-full transition-transform duration-1000 ease-in-out"
+              style={{
+                transform: `translateY(-${scrollPosition}px)`,
+              }}
+            >
+              <Image
+                src={firstImage.src}
+                width={firstImage.width}
+                height={firstImage.height}
+                alt="Motion image"
+                className="w-full h-auto object-contain"
+                priority
+                onLoad={handleImageLoad}
+              />
+            </div>
+          </div>
+        )}
 
-            // 현재 인덱스와의 차이 계산 (순환 고려)
-            let diff = index - currentIndex;
-            // 순환 배열에서 가장 짧은 거리 계산
-            if (Math.abs(diff) > imageData.length / 2) {
-              diff = diff > 0 ? diff - imageData.length : diff + imageData.length;
-            }
-            const translateX = diff * 400; // 이미지 간 간격 (오른쪽 배치에 맞게 조정)
+        {phase === "second" && secondMotionImages.length > 0 && (
+          <div
+            className="relative w-full h-full flex items-center justify-center overflow-visible transition-opacity duration-500 ease-in-out"
+            style={{ opacity: transitioningToFirst ? 0 : 1 }}
+          >
+            {secondMotionImages.map((img, index) => {
+              const total = secondMotionImages.length;
+              let diff = index - currentIndex;
+              if (diff > total / 2) diff -= total;
+              if (diff < -total / 2) diff += total;
 
-            const ImageContent = (
-              <div
-                className="relative overflow-hidden rounded-lg shadow-2xl transition-all duration-700 ease-out"
-                style={{
-                  width: `${config.width}px`,
-                  height: `${config.height}px`,
-                  transform: config.transform,
-                  opacity: config.opacity,
-                  filter: config.filter,
-                  zIndex: config.zIndex,
-                }}
-              >
-                <Image
-                  src={image.src}
-                  alt={titles?.[index] || `Image ${index + 1}`}
-                  width={image.width}
-                  height={image.height}
-                  className="object-contain w-full h-full"
-                  priority={index < 2}
-                  quality={95}
-                />
-              </div>
-            );
+              const absDiff = Math.abs(diff);
+              const baseTranslateX = 260;
 
-            return (
-              <div
-                key={index}
-                className="absolute cursor-pointer"
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(calc(-50% + ${translateX}px), -50%)`,
-                  transition: 'transform 0.7s ease-out',
-                }}
-              >
-                {image.id !== null && image.id !== undefined ? (
-                  <Link href={`/?photoId=${image.id}`} className="block h-full w-full">
-                    {ImageContent}
-                  </Link>
-                ) : (
-                  ImageContent
-                )}
-              </div>
-            );
-          })}
-        </div>
+              let translateX = diff * baseTranslateX;
+              let scale = 1;
+              let rotateY = 0;
+              let opacity = 1;
+              let zIndex = 10 - absDiff;
+
+              if (absDiff === 0) {
+                scale = 1;
+                rotateY = 0;
+                opacity = 1;
+              } else if (absDiff === 1) {
+                scale = 0.85;
+                // 회전 방향 반전
+                rotateY = diff < 0 ? -20 : 20;
+                opacity = 0.9;
+              } else {
+                // 너무 멀리 있는 카드들은 화면에 보이지 않도록 처리
+                scale = 0.7;
+                rotateY = diff < 0 ? -30 : 30;
+                opacity = 0; // 완전히 숨김
+              }
+
+              return (
+                <div
+                  key={img.src}
+                  className="absolute will-change-transform"
+                  style={{
+                    transform: `translateX(${translateX}px) scale(${scale}) perspective(1200px) rotateY(${rotateY}deg)`,
+                    transition: "transform 800ms ease-in-out, opacity 800ms ease-in-out",
+                    opacity,
+                    zIndex,
+                  }}
+                >
+                  <Image
+                    src={img.src}
+                    width={img.width}
+                    height={img.height}
+                    alt="Bodoni editorial"
+                    className="h-auto w-auto max-h-[70vh] rounded-lg shadow-2xl object-contain"
+                    priority={index === currentIndex}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {phase === "third" && thirdImages.length > 0 && (
+          <div className="relative w-full h-full overflow-hidden rounded-lg shadow-2xl bg-black/40">
+            {thirdImages.map((img, index) => {
+              const isCurrent = index === pageIndex;
+              const isPast = index < pageIndex;
+              const isNext = index === pageIndex + 1;
+
+              let transform = "";
+              let opacity = 1;
+              let filter = "none";
+              let zIndex = 10;
+
+              if (isCurrent) {
+                // 가운데 현재 페이지
+                transform = "translateX(0) scaleX(1)";
+                opacity = 1;
+                filter = "none";
+                zIndex = 30;
+              } else if (isPast) {
+                // 이미 넘긴 페이지: 왼쪽에 쌓이는 페이지 (책 넘긴 뒤 상태)
+                const offset = (pageIndex - index) * 40;
+                transform = `translateX(-${200 + offset}px) scaleX(-1) scale(0.9)`;
+                opacity = 0.45;
+                filter = "blur(4px) grayscale(20%)";
+                zIndex = 20 - (pageIndex - index);
+              } else if (isNext) {
+                // 곧 넘길 다음 페이지: 오른쪽 밖에서 들어오기
+                transform = "translateX(110%) scaleX(1)";
+                opacity = 1;
+                filter = "none";
+                zIndex = 25;
+              } else {
+                // 그 이후 페이지들은 더 오른쪽에 대기 (거의 안 보이도록)
+                transform = "translateX(140%) scaleX(1)";
+                opacity = 0;
+                filter = "none";
+                zIndex = 5;
+              }
+
+              return (
+                <div
+                  key={img.src}
+                  className="absolute inset-0 flex items-center justify-center will-change-transform"
+                  style={{
+                    transform,
+                    opacity,
+                    filter,
+                    zIndex,
+                    transition:
+                      "transform 900ms ease-in-out, opacity 900ms ease-in-out, filter 900ms ease-in-out",
+                  }}
+                >
+                  <Image
+                    src={img.src}
+                    width={img.width}
+                    height={img.height}
+                    alt="Story book page"
+                    className="h-auto w-auto max-h-[70vh] object-contain rounded-lg bg-neutral-900"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
   ArrowUturnLeftIcon,
   ChevronLeftIcon,
@@ -126,6 +127,16 @@ export default function SharedModal({
           </div>
           {navigation && (
             <div className="pointer-events-auto flex items-center gap-2 text-white">
+              {/* 이미지 저장 버튼 */}
+              <a
+                href={currentImage.src}
+                download
+                className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                title="이미지 저장"
+              >
+                <ArrowDownTrayIcon className="h-5 w-5" />
+              </a>
+              {/* 원본 크기로 열기 버튼 */}
               <a
                 href={currentImage.src}
                 className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
