@@ -49,7 +49,7 @@ export default function getLocalImages(): ImageProps[] {
   // 1번 줄 이미지들 (나머지 모든 이미지들)
   const row1Images: string[] = [];
   const excludedFiles = ["포폴.png", "자소서.png", "책자 썸네일.jpg"]; // 갤러리에서 제외할 파일들
-  const mainPortfolioFile = "포트폴리오.png";
+  const mainPortfolioFile = "프로필.png";
 
   for (const file of imageFiles) {
     if (!specifiedImages.includes(file) && !excludedFiles.includes(file)) {
@@ -58,7 +58,7 @@ export default function getLocalImages(): ImageProps[] {
   }
   row1Images.sort();
 
-  // 포트폴리오.png를 1번 줄 맨 앞에 추가
+  // 프로필.png를 1번 줄 맨 앞에 추가
   if (imageFiles.includes(mainPortfolioFile) && !specifiedImages.includes(mainPortfolioFile)) {
     const existIdx = row1Images.indexOf(mainPortfolioFile);
     if (existIdx > -1) {

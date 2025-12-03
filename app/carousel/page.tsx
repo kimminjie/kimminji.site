@@ -4,7 +4,7 @@ import getLocalImages from "../../utils/getLocalImages";
 
 export default function CarouselPage() {
   const allImages = getLocalImages();
-  
+
   const carouselImageSrcs = [
     "/images/공익 포스터.jpg",
     "/images/동화_표지.jpg",

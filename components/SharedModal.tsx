@@ -52,7 +52,7 @@ export default function SharedModal({
   let currentImage = images ? images[index] : currentPhoto;
 
   // 스크롤 가능한 이미지 목록 (세로로 긴 작업들)
-  const scrollableImages = ["모바일 디자인.jpg", "책자.jpg", "포트폴리오.png"];
+  const scrollableImages = ["모바일 디자인.jpg", "책자.jpg", "프로필.png"];
   const imageFileName = currentImage.src.split("/").pop() || "";
   const isScrollable = scrollableImages.includes(imageFileName);
 
