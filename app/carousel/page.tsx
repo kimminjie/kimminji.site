@@ -1,8 +1,11 @@
 import Link from "next/link";
 import Carousel3D from "../../components/Carousel3D";
+import getLocalImages from "../../utils/getLocalImages";
 
 export default function CarouselPage() {
-  const images = [
+  const allImages = getLocalImages();
+  
+  const carouselImageSrcs = [
     "/images/공익 포스터.jpg",
     "/images/동화_표지.jpg",
     "/images/북커버.png",
@@ -10,13 +13,10 @@ export default function CarouselPage() {
     "/images/책자 썸네일.jpg",
   ];
 
-  const titles = [
-    "공익 포스터",
-    "동화 표지",
-    "북커버",
-    "패키지",
-    "책자",
-  ];
+  // 캐러셀 이미지 데이터 찾기
+  const carouselImageData = carouselImageSrcs.map((src) => {
+    return allImages.find((img) => img.src === src);
+  }).filter((img): img is NonNullable<typeof img> => img !== undefined);
 
   return (
     <>
@@ -26,7 +26,7 @@ export default function CarouselPage() {
       >
         ← 갤러리로 돌아가기
       </Link>
-      <Carousel3D images={images} titles={titles} />
+      <Carousel3D imageData={carouselImageData} />
     </>
   );
 }
