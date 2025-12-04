@@ -37,18 +37,16 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   // 3번 모션: 동화책 페이지 이미지들 (오른쪽에서 왼쪽으로 페이지 넘김)
   const storySrcs = [
     "/images/동화_표지.jpg",
+    "/images/동화.jpg",
     "/images/동화1.jpg",
-    "/images/동화2.jpg",
   ];
   const storyImages = storySrcs
     .map((src) => images.find((img) => img.src === src))
     .filter((img): img is ImageProps => img !== undefined);
 
-  // 모션에 이미 사용되는 이미지들은 갤러리에서 클릭해도 모달이 뜨지 않도록 처리
-  const nonClickableSrcSet = new Set<string>([
-    "/images/모바일 디자인.jpg",
-    ...storySrcs,
-  ]);
+  // (현재는 모든 이미지를 클릭 가능하게 사용)
+  const nonClickableSrcSet = new Set<string>();
+  const storySrcSet = new Set<string>(storySrcs);
 
   // 캐러셀에 전달할 모션 이미지 시퀀스:
   // 1번: 모바일 디자인 (세로 스크롤)
@@ -90,16 +88,29 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             }}
           />
         )}
-        <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
-          {/* 줄별로 그룹화하여 렌더링 */}
-          {[1, 2, 3, 4].map((rowNum) => {
-            const rowImages = images.filter((img) => img.row === rowNum);
-            return (
-              <div key={rowNum} className="contents">
-                {rowImages.map(({ id, src, width, height, blurDataUrl }, idx) => {
-                  const isNonClickable = nonClickableSrcSet.has(src);
+        {/* 같은 src 이미지를 전체 그리드에서 한 번만 보여주기 위한 Set */}
+        {(() => {
+          const renderedSrc = new Set<string>();
 
-                  const imageEl = (
+          return (
+            <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
+              {/* 줄별로 그룹화하여 렌더링 (모션용 이미지는 그대로 보여주되, 같은 src는 한 번만) */}
+              {[1, 2, 3, 4].map((rowNum) => {
+                const rowImages = images.filter((img) => img.row === rowNum);
+                return (
+                  <div key={rowNum} className="contents">
+                    {rowImages.map(({ id, src, width, height, blurDataUrl }, idx) => {
+                      if (renderedSrc.has(src)) {
+                        return null; // 같은 이미지(src)는 한 번만 표시
+                      }
+                      renderedSrc.add(src);
+
+                      const isNonClickable = nonClickableSrcSet.has(src);
+                      if (isNonClickable) {
+                        return null; // 모션 전용(저장 불가) 이미지는 작업물 그리드에서 숨김
+                      }
+
+                      const imageEl = (
                     <Image
                       alt="Portfolio work"
                       className={`transform rounded-lg brightness-90 transition will-change-auto ${
@@ -116,35 +127,31 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                           (max-width: 1536px) 33vw,
                           25vw"
                     />
-                  );
+                      );
 
-                  return (
-                    <div
-                      key={id}
-                      className={idx === rowImages.length - 1 ? "break-after-column" : ""}
-                    >
-                      {isNonClickable ? (
-                        <div className="relative mb-5 block w-full cursor-default">
-                          {imageEl}
-                        </div>
-                      ) : (
-                        <Link
-                          href={`/?photoId=${id}`}
-                          ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
-                          className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
+                      return (
+                        <div
+                          key={id}
+                          className={idx === rowImages.length - 1 ? "break-after-column" : ""}
                         >
-                          {imageEl}
-                        </Link>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
+                          <Link
+                            href={`/?photoId=${id}`}
+                            ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
+                            className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
+                          >
+                            {imageEl}
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </main>
-      <footer className="p-6 text-center text-white/80 sm:p-12">
+      <footer className="p-6 text-center text-black/80 sm:p-12">
         © 2025 김민지. All rights reserved.
       </footer>
     </>

@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { ImageProps } from "../utils/types";
+import AutoBookFlip from "./AutoBookFlip";
 
 interface Carousel3DProps {
   imageData: ImageProps[];      // 1, 2번 모션용
-  thirdImages?: ImageProps[];   // 3번 모션(동화책)용
+  thirdImages?: ImageProps[];  // 3번 모션용
 }
 
 export default function Carousel3D({
@@ -14,12 +15,13 @@ export default function Carousel3D({
   thirdImages = [],
 }: Carousel3DProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
-  // phase 순서: "second"(보도니 3D 캐러셀) -> "first"(모바일 세로 스크롤) -> "third"(동화책)
+  // phase 순서: "second"(1번 모션: 보도니 3D 캐러셀) -> "first"(2번 모션: 모바일 세로 스크롤) -> "third"(3번 모션: 동화책) -> "second" -> 반복
+  // 주의: phase "second" = 1번 모션, phase "first" = 2번 모션, phase "third" = 3번 모션
   const [phase, setPhase] = useState<"first" | "second" | "third">("second");
   const [currentIndex, setCurrentIndex] = useState(0); // 2번 모션용
-  const [pageIndex, setPageIndex] = useState(0);       // 3번 모션용
   const [transitioningToFirst, setTransitioningToFirst] = useState(false);
   const [transitioningToThird, setTransitioningToThird] = useState(false);
+  const [transitioningToSecond, setTransitioningToSecond] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageWrapperRef = useRef<HTMLDivElement>(null);
   const [imageHeight, setImageHeight] = useState(0);
@@ -43,8 +45,6 @@ export default function Carousel3D({
       setScrollPosition(0);
     } else if (phase === "second") {
       setCurrentIndex(0);
-    } else if (phase === "third") {
-      setPageIndex(0);
     }
   }, [phase]);
 
@@ -58,7 +58,7 @@ export default function Carousel3D({
     }
   };
 
-  // 1번 모션: 한 페이지씩 스크롤하고 1.5초 대기 반복 (3번 스크롤 후 4번째에서 3번 모션으로 전환)
+  // 2번 모션: 한 페이지씩 스크롤하고 1.5초 대기 반복 (3번 스크롤 후 4번째에서 3번 모션으로 전환)
   useEffect(() => {
     if (!firstImage || !mounted || imageHeight === 0 || containerHeight === 0 || phase !== "first") {
       return;
@@ -79,10 +79,12 @@ export default function Carousel3D({
       setScrollPosition(clampedPosition);
       currentStep++;
 
-      // 3번 스크롤 이후, 4번째 스크롤 직전에 3번 모션으로 부드럽게 전환
+      // 3번 스크롤 이후, 4번째 스크롤 하면서 3번 모션으로 부드럽게 전환
       if (currentStep >= 4 || clampedPosition >= maxScroll) {
+        // 4번째 스크롤 시작 시 페이드 아웃 시작
         setTransitioningToThird(true);
         transitionTimeout = setTimeout(() => {
+          // 페이드 아웃 완료 후 3번 모션으로 전환
           setPhase("third");
           setTransitioningToThird(false);
         }, 500);
@@ -104,7 +106,7 @@ export default function Carousel3D({
     };
   }, [firstImage, imageHeight, containerHeight, mounted, phase]);
 
-  // 2번 모션: 3D 캐러셀 회전
+  // 1번 모션: 3D 캐러셀 회전 (보도니)
   useEffect(() => {
     if (!mounted || phase !== "second" || secondMotionImages.length === 0) return;
 
@@ -119,7 +121,7 @@ export default function Carousel3D({
         const currentImg = secondMotionImages[prev];
         const nextImg = secondMotionImages[next];
 
-        // 책자 3.jpg 에서 책자 4.jpg 로 넘어갈 때 2번 모션(모바일)으로 전환
+        // 책자 3.jpg 에서 책자 4.jpg 로 넘어갈 때 2번 모션(모바일 세로 스크롤)으로 전환
         if (
           currentImg?.src.endsWith("/책자 3.jpg") &&
           nextImg?.src.endsWith("/책자 4.jpg")
@@ -142,49 +144,17 @@ export default function Carousel3D({
     };
   }, [mounted, phase, secondMotionImages.length]);
 
-  // 3번 모션: 동화책 페이지 넘기기 (오른쪽 → 왼쪽 슬라이드)
-  useEffect(() => {
-    if (!mounted || phase !== "third" || thirdImages.length === 0) return;
-
-    setPageIndex(0);
-    let timeoutId: NodeJS.Timeout | null = null;
-    let phaseTimeout: NodeJS.Timeout | null = null;
-
-    const goNext = () => {
-      setPageIndex((prev) => {
-        if (prev >= thirdImages.length - 1) {
-          // 마지막 페이지를 다 보여준 뒤 1번 모션(보도니 3D)으로 전환
-          if (!phaseTimeout) {
-            phaseTimeout = setTimeout(() => {
-              setPhase("second");
-            }, 1500);
-          }
-          return prev;
-        }
-        const next = prev + 1;
-        timeoutId = setTimeout(goNext, 1500);
-        return next;
-      });
-    };
-
-    timeoutId = setTimeout(goNext, 1500);
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (phaseTimeout) clearTimeout(phaseTimeout);
-    };
-  }, [mounted, phase, thirdImages.length]);
 
   if (!firstImage) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center bg-black py-20">
+      <div className="flex min-h-[80vh] items-center justify-center bg-[#111111] py-20">
         {/* 이미지를 찾을 수 없습니다 */}
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-[88vh] items-center justify-center lg:justify-end bg-black py-10 px-4">
+    <div className="flex min-h-[88vh] items-center justify-center lg:justify-end bg-[#111111] py-10 px-4 overflow-x-hidden">
       <div
         ref={containerRef}
         className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16"
@@ -198,10 +168,10 @@ export default function Carousel3D({
               opacity: transitioningToThird ? 0 : 1,
             }}
           >
-            {/* 위쪽 블러 / 그라데이션 */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-gradient-to-b from-black via-black/60 to-transparent" />
-            {/* 아래쪽 블러 / 그라데이션 */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-black via-black/60 to-transparent" />
+            {/* 위쪽 블러 / 그라데이션 – 전체 배경색(#111111)과 동일한 색으로 경계만 부드럽게 */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-gradient-to-b from-[#111111] via-[#111111]/60 to-transparent" />
+            {/* 아래쪽 블러 / 그라데이션 – 전체 배경색(#111111)과 동일 */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-[#111111] via-[#111111]/60 to-transparent" />
 
             <div
               ref={imageWrapperRef}
@@ -225,9 +195,13 @@ export default function Carousel3D({
 
         {phase === "second" && secondMotionImages.length > 0 && (
           <div
-            className="relative w-full h-full flex items-center justify-center overflow-visible transition-opacity duration-500 ease-in-out"
+            className="relative w-full h-full flex items-center justify-center overflow-visible bg-[#111111] transition-opacity duration-500 ease-in-out"
             style={{ opacity: transitioningToFirst ? 0 : 1 }}
           >
+            {/* 2번 모션 위/아래 블러 – 배경색(#111111)과 같게, 이미지 안쪽은 그대로 두고 바깥쪽만 덮는 느낌 */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#111111] via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
+
             {secondMotionImages.map((img, index) => {
               const total = secondMotionImages.length;
               let diff = index - currentIndex;
@@ -262,7 +236,7 @@ export default function Carousel3D({
               return (
                 <div
                   key={img.src}
-                  className="absolute will-change-transform"
+                  className="absolute will-change-transform z-20"
                   style={{
                     transform: `translateX(${translateX}px) scale(${scale}) perspective(1200px) rotateY(${rotateY}deg)`,
                     transition: "transform 800ms ease-in-out, opacity 800ms ease-in-out",
@@ -285,69 +259,19 @@ export default function Carousel3D({
         )}
 
         {phase === "third" && thirdImages.length > 0 && (
-          <div className="relative w-full h-full overflow-hidden rounded-lg shadow-2xl bg-black/40">
-            {thirdImages.map((img, index) => {
-              const isCurrent = index === pageIndex;
-              const isPast = index < pageIndex;
-              const isNext = index === pageIndex + 1;
-
-              let transform = "";
-              let opacity = 1;
-              let filter = "none";
-              let zIndex = 10;
-
-              if (isCurrent) {
-                // 가운데 현재 페이지
-                transform = "translateX(0) scaleX(1)";
-                opacity = 1;
-                filter = "none";
-                zIndex = 30;
-              } else if (isPast) {
-                // 이미 넘긴 페이지: 왼쪽에 쌓이는 페이지 (책 넘긴 뒤 상태)
-                const offset = (pageIndex - index) * 40;
-                transform = `translateX(-${200 + offset}px) scaleX(-1) scale(0.9)`;
-                opacity = 0.45;
-                filter = "blur(4px) grayscale(20%)";
-                zIndex = 20 - (pageIndex - index);
-              } else if (isNext) {
-                // 곧 넘길 다음 페이지: 오른쪽 밖에서 들어오기
-                transform = "translateX(110%) scaleX(1)";
-                opacity = 1;
-                filter = "none";
-                zIndex = 25;
-              } else {
-                // 그 이후 페이지들은 더 오른쪽에 대기 (거의 안 보이도록)
-                transform = "translateX(140%) scaleX(1)";
-                opacity = 0;
-                filter = "none";
-                zIndex = 5;
-              }
-
-              return (
-                <div
-                  key={img.src}
-                  className="absolute inset-0 flex items-center justify-center will-change-transform"
-                  style={{
-                    transform,
-                    opacity,
-                    filter,
-                    zIndex,
-                    transition:
-                      "transform 900ms ease-in-out, opacity 900ms ease-in-out, filter 900ms ease-in-out",
-                  }}
-                >
-                  <Image
-                    src={img.src}
-                    width={img.width}
-                    height={img.height}
-                    alt="Story book page"
-                    className="h-auto w-auto max-h-[70vh] object-contain rounded-lg bg-neutral-900"
-                  />
-                </div>
-              );
-            })}
+          <div className="relative w-full h-full">
+            <AutoBookFlip
+              images={thirdImages}
+              onComplete={() => {
+                // 3번 모션 완료 후(동화1.jpg 넘어갈 때) 1번 모션(보도니)으로 부드럽게 전환하여 반복
+                setTimeout(() => {
+                  setPhase("second");
+                }, 500);
+              }}
+            />
           </div>
         )}
+
       </div>
     </div>
   );
