@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ImageProps } from "../utils/types";
 import AutoBookFlip from "./AutoBookFlip";
@@ -8,12 +9,15 @@ import AutoBookFlip from "./AutoBookFlip";
 interface Carousel3DProps {
   imageData: ImageProps[];      // 1, 2번 모션용
   thirdImages?: ImageProps[];  // 3번 모션용
+  profileImageId?: number;      // 프로필 이미지 id
 }
 
 export default function Carousel3D({
   imageData,
   thirdImages = [],
+  profileImageId,
 }: Carousel3DProps) {
+  const router = useRouter();
   const [scrollPosition, setScrollPosition] = useState(0);
   // phase 순서: "second"(1번 모션: 보도니 3D 캐러셀) -> "first"(2번 모션: 모바일 세로 스크롤) -> "third"(3번 모션: 동화책) -> "second" -> 반복
   // 주의: phase "second" = 1번 모션, phase "first" = 2번 모션, phase "third" = 3번 모션
@@ -154,7 +158,200 @@ export default function Carousel3D({
   }
 
   return (
-    <div className="flex min-h-[88vh] items-center justify-center lg:justify-end bg-[#111111] py-10 px-4 overflow-x-hidden">
+    <div className="relative flex min-h-[88vh] items-center justify-center lg:justify-end bg-[#111111] py-10 px-4 overflow-x-hidden">
+      {/* 왼쪽 텍스트 영역 - Designed by */}
+      <div className="hidden lg:block absolute left-[calc(3rem+10cm)] top-[calc(5%+3cm)] z-10">
+        {/* 빨간 네모: Designed (큰 글씨) + by (작은 글씨) */}
+        <div className="flex items-start gap-2 -mt-8">
+          <span
+            className="text-white text-7xl lg:text-8xl font-light italic -ml-4"
+            style={{ transform: 'scaleY(1.5)', display: 'inline-block' }}
+          >
+            Designed
+          </span>
+          <span className="text-white text-3xl lg:text-4xl font-light mt-[6rem]">
+            by
+          </span>
+        </div>
+      </div>
+
+      {/* 왼쪽 텍스트 영역 - Kim Minji */}
+      <div className="hidden lg:block absolute left-16 top-[28%] z-10">
+        <div className="space-y-0">
+          {/* 파란 네모: Kim */}
+          <div>
+            <p
+              className="text-white text-[12rem] lg:text-[14rem] font-bold cursor-pointer hover:opacity-80 transition-opacity leading-none"
+              onClick={() => {
+                if (profileImageId !== undefined) {
+                  // 현재 스크롤 위치 저장
+                  if (typeof window !== "undefined") {
+                    sessionStorage.setItem("profileModalScrollY", window.scrollY.toString());
+                    sessionStorage.setItem("profileModalId", profileImageId.toString());
+                  }
+                  router.push(`/?photoId=${profileImageId}`);
+                }
+              }}
+            >
+              Kim
+            </p>
+          </div>
+          {/* 보라색 네모: Minji */}
+          <div className="-mt-48">
+            <p className="text-white text-[10rem] lg:text-[13rem] font-bold leading-none">
+              Minji
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 연락처 - 고정 위치 */}
+      <div className="hidden lg:block absolute left-16 top-[90%] z-10">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="flex-shrink-0"
+            >
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                fill="#EF4444"
+              />
+            </svg>
+            <span className="text-white text-base lg:text-lg">
+              010 - 2840 - 5951
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="flex-shrink-0"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                fill="#EF4444"
+              />
+              <path
+                d="m22 6-10 7L2 6"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+            <span className="text-white text-base lg:text-lg">
+              nnind0112@gmail.com
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 모바일에서 텍스트 표시 - Designed by */}
+      <div className="lg:hidden w-full mb-8 text-center">
+        {/* 빨간 네모: Designed (큰 글씨) + by (작은 글씨) */}
+        <div className="flex items-start justify-center gap-2 -mt-12">
+          <span
+            className="text-white text-7xl font-light italic -ml-4"
+            style={{ transform: 'scaleY(1.5)', display: 'inline-block' }}
+          >
+            Designed
+          </span>
+          <span className="text-white text-3xl font-light mt-[6rem]">
+            by
+          </span>
+        </div>
+      </div>
+
+      {/* 모바일에서 텍스트 표시 - Kim Minji */}
+      <div className="lg:hidden w-full mb-8 text-center mt-8">
+        <div className="space-y-0">
+          {/* 파란 네모: Kim */}
+          <div>
+            <p
+              className="text-white text-[12rem] font-bold cursor-pointer hover:opacity-80 transition-opacity leading-none"
+              onClick={() => {
+                if (profileImageId !== undefined) {
+                  // 현재 스크롤 위치 저장
+                  if (typeof window !== "undefined") {
+                    sessionStorage.setItem("profileModalScrollY", window.scrollY.toString());
+                    sessionStorage.setItem("profileModalId", profileImageId.toString());
+                  }
+                  router.push(`/?photoId=${profileImageId}`);
+                }
+              }}
+            >
+              Kim
+            </p>
+          </div>
+          {/* 보라색 네모: Minji */}
+          <div className="-mt-48">
+            <p className="text-white text-[10rem] font-bold leading-none">
+              Minji
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 모바일에서 텍스트 표시 - 연락처 */}
+      <div className="lg:hidden w-full mb-8 text-center mt-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="flex-shrink-0"
+            >
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                fill="#EF4444"
+              />
+            </svg>
+            <span className="text-white text-base">
+              010 - 2840 - 5951
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="flex-shrink-0"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                fill="#EF4444"
+              />
+              <path
+                d="m22 6-10 7L2 6"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+            <span className="text-white text-base">
+              nnind0112@gmail.com
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 모션 영역 - 원래 위치 그대로 유지 */}
       <div
         ref={containerRef}
         className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16"
@@ -271,7 +468,6 @@ export default function Carousel3D({
             />
           </div>
         )}
-
       </div>
     </div>
   );

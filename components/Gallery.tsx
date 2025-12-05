@@ -20,14 +20,45 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
 
   const lastViewedPhotoRef = useRef<HTMLAnchorElement | null>(null);
+  const prevPhotoIdRef = useRef<string | null>(null);
+
+  // 프로필 이미지 찾기
+  const profileImage = images.find(
+    (img) => img.src === "/images/프로필.png"
+  );
+  const profileImageId = profileImage?.id;
 
   useEffect(() => {
-    // 마지막으로 본 사진 위치로 스크롤
-    if (lastViewedPhoto && !photoId) {
+    const currentPhotoId = photoId;
+    const prevPhotoId = prevPhotoIdRef.current;
+    
+    // 프로필 모달이 닫혔을 때 저장된 스크롤 위치로 복원
+    if (prevPhotoId && !currentPhotoId && typeof window !== "undefined") {
+      const savedScrollY = sessionStorage.getItem("profileModalScrollY");
+      const savedProfileId = sessionStorage.getItem("profileModalId");
+      if (savedScrollY !== null && savedProfileId && profileImageId && 
+          prevPhotoId === profileImageId.toString() && 
+          savedProfileId === profileImageId.toString()) {
+        // 약간의 지연을 두어 모달이 완전히 닫힌 후 스크롤 복원
+        setTimeout(() => {
+          const scrollY = parseInt(savedScrollY, 10);
+          window.scrollTo({ top: scrollY, behavior: "auto" });
+          sessionStorage.removeItem("profileModalScrollY");
+          sessionStorage.removeItem("profileModalId");
+        }, 200);
+      }
+    }
+    
+    // 마지막으로 본 사진 위치로 스크롤 (프로필 이미지가 아닌 경우만)
+    if (lastViewedPhoto && !currentPhotoId && 
+        profileImageId && lastViewedPhoto !== profileImageId.toString()) {
       lastViewedPhotoRef.current?.scrollIntoView({ block: "center" });
       setLastViewedPhoto(null);
     }
-  }, [photoId, lastViewedPhoto, setLastViewedPhoto]);
+    
+    // 이전 photoId 업데이트
+    prevPhotoIdRef.current = currentPhotoId;
+  }, [photoId, lastViewedPhoto, setLastViewedPhoto, profileImageId]);
 
   // 1번 모션: 모바일 디자인.jpg
   const mobileDesignImage = images.find(
@@ -76,15 +107,33 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
       {/* 모션 캐러셀 - 최상단 (작업 이미지 모달 열렸을 때는 숨김) */}
       {!photoId && (
         <div className="w-full">
-          <Carousel3D imageData={carouselImageData} thirdImages={storyImages} />
+          <Carousel3D 
+            imageData={carouselImageData} 
+            thirdImages={storyImages}
+            profileImageId={profileImage?.id}
+          />
         </div>
       )}
-      <main className="mx-auto max-w-[1960px] p-4">
+      <main id="gallery" className="mx-auto max-w-[1960px] p-4">
         {photoId && (
           <Modal
             images={images}
             onClose={() => {
-              setLastViewedPhoto(photoId);
+              // 프로필 이미지 모달이 닫힌 경우 스크롤 위치 복원 (lastViewedPhoto 설정 안 함)
+              if (photoId && profileImageId && photoId === profileImageId.toString()) {
+                const savedScrollY = sessionStorage.getItem("profileModalScrollY");
+                if (savedScrollY !== null && typeof window !== "undefined") {
+                  setTimeout(() => {
+                    const scrollY = parseInt(savedScrollY, 10);
+                    window.scrollTo({ top: scrollY, behavior: "auto" });
+                    sessionStorage.removeItem("profileModalScrollY");
+                    sessionStorage.removeItem("profileModalId");
+                  }, 150);
+                }
+                // lastViewedPhoto를 설정하지 않아서 갤러리로 스크롤되지 않음
+              } else {
+                setLastViewedPhoto(photoId);
+              }
             }}
           />
         )}
@@ -157,5 +206,6 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     </>
   );
 }
+
 
 
