@@ -191,7 +191,7 @@ export default function Carousel3D({
       >
         {phase === "first" && (
           <div
-            className="relative w-full h-full overflow-hidden transition-opacity duration-500 ease-in-out"
+            className="relative w-full h-full overflow-x-hidden overflow-y-hidden transition-opacity duration-500 ease-in-out"
             style={{
               height: "88vh",
               opacity: transitioningToThird ? 0 : 1,
@@ -224,12 +224,12 @@ export default function Carousel3D({
 
         {phase === "second" && secondMotionImages.length > 0 && (
           <div
-            className="relative w-full h-full flex items-center justify-center overflow-visible bg-[#111111] transition-opacity duration-500 ease-in-out"
+            className="relative w-full h-full flex items-center justify-center overflow-visible transition-opacity duration-500 ease-in-out"
             style={{ opacity: transitioningToFirst ? 0 : 1 }}
           >
             {/* 2번 모션 위/아래 블러 – 배경색(#111111)과 같게, 이미지 안쪽은 그대로 두고 바깥쪽만 덮는 느낌 */}
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#111111] via-transparent to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
+            {/* 하단 블러 제거 - PORTFOLIO 텍스트가 보이도록 */}
 
             {secondMotionImages.map((img, index) => {
               const total = secondMotionImages.length;

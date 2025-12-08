@@ -2,7 +2,7 @@
 
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useKeypress from "react-use-keypress";
 import type { ImageProps } from "../utils/types";
@@ -17,7 +17,6 @@ export default function Modal({
 }) {
   let overlayRef = useRef();
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const photoId = searchParams.get("photoId");

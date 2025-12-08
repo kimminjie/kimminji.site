@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import Carousel3D from "./Carousel3D";
 import type { ImageProps } from "../utils/types";
@@ -21,6 +21,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
   const lastViewedPhotoRef = useRef<HTMLAnchorElement | null>(null);
   const prevPhotoIdRef = useRef<string | null>(null);
+  const [showCarousel, setShowCarousel] = useState(!photoId);
 
   // 프로필 이미지 찾기
   const profileImage = images.find(
@@ -32,27 +33,65 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     const currentPhotoId = photoId;
     const prevPhotoId = prevPhotoIdRef.current;
     
-    // 프로필 모달이 닫혔을 때 저장된 스크롤 위치로 복원
+    // 모달이 닫혔을 때 저장된 스크롤 위치로 복원
     if (prevPhotoId && !currentPhotoId && typeof window !== "undefined") {
-      const savedScrollY = sessionStorage.getItem("profileModalScrollY");
+      // 캐러셀을 먼저 숨김
+      setShowCarousel(false);
+      
+      // 프로필 모달인 경우
+      const savedProfileScrollY = sessionStorage.getItem("profileModalScrollY");
       const savedProfileId = sessionStorage.getItem("profileModalId");
-      if (savedScrollY !== null && savedProfileId && profileImageId && 
+      if (savedProfileScrollY !== null && savedProfileId && profileImageId && 
           prevPhotoId === profileImageId.toString() && 
           savedProfileId === profileImageId.toString()) {
-        // 약간의 지연을 두어 모달이 완전히 닫힌 후 스크롤 복원
+        // 즉시 스크롤 복원
+        const scrollY = parseInt(savedProfileScrollY, 10);
+        window.scrollTo({ top: scrollY, behavior: "auto" });
+        sessionStorage.removeItem("profileModalScrollY");
+        sessionStorage.removeItem("profileModalId");
+        // 스크롤 복원 후 캐러셀 표시
         setTimeout(() => {
-          const scrollY = parseInt(savedScrollY, 10);
-          window.scrollTo({ top: scrollY, behavior: "auto" });
-          sessionStorage.removeItem("profileModalScrollY");
-          sessionStorage.removeItem("profileModalId");
-        }, 200);
+          setShowCarousel(true);
+        }, 50);
+        return; // 프로필 모달 복원 후 종료
       }
+      
+      // 일반 갤러리 모달인 경우
+      const savedGalleryScrollY = sessionStorage.getItem("galleryModalScrollY");
+      const savedGalleryId = sessionStorage.getItem("galleryModalId");
+      if (savedGalleryScrollY !== null && savedGalleryId && 
+          prevPhotoId === savedGalleryId) {
+        // 즉시 스크롤 복원 (requestAnimationFrame 사용하여 정확한 복원)
+        const scrollY = parseInt(savedGalleryScrollY, 10);
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: scrollY, behavior: "auto" });
+          // 추가로 한 번 더 확인하여 정확한 위치로 스크롤
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollY, behavior: "auto" });
+          });
+        });
+        sessionStorage.removeItem("galleryModalScrollY");
+        sessionStorage.removeItem("galleryModalId");
+        setLastViewedPhoto(null); // lastViewedPhoto 초기화
+        // 스크롤 복원 후 캐러셀 표시
+        setTimeout(() => {
+          setShowCarousel(true);
+        }, 100);
+        return; // 갤러리 모달 복원 후 종료
+      }
+      
+      // 저장된 스크롤 위치가 없는 경우에도 캐러셀 표시
+      setShowCarousel(true);
+    } else if (!currentPhotoId && !prevPhotoId) {
+      // 모달이 열리지 않은 상태에서는 캐러셀 표시
+      setShowCarousel(true);
+    } else if (currentPhotoId) {
+      // 모달이 열린 상태에서는 캐러셀 숨김
+      setShowCarousel(false);
     }
     
-    // 마지막으로 본 사진 위치로 스크롤 (프로필 이미지가 아닌 경우만)
-    if (lastViewedPhoto && !currentPhotoId && 
-        profileImageId && lastViewedPhoto !== profileImageId.toString()) {
-      lastViewedPhotoRef.current?.scrollIntoView({ block: "center" });
+    // 마지막으로 본 사진 위치로 스크롤은 하지 않음 (저장된 스크롤 위치로 복원하므로)
+    if (lastViewedPhoto && !currentPhotoId) {
       setLastViewedPhoto(null);
     }
     
@@ -105,7 +144,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   return (
     <>
       {/* 모션 캐러셀 - 최상단 (작업 이미지 모달 열렸을 때는 숨김) */}
-      {!photoId && (
+      {showCarousel && (
         <div className="w-full">
           <Carousel3D 
             imageData={carouselImageData} 
@@ -119,19 +158,13 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
           <Modal
             images={images}
             onClose={() => {
-              // 프로필 이미지 모달이 닫힌 경우 스크롤 위치 복원 (lastViewedPhoto 설정 안 함)
+              // 프로필 이미지 모달이 닫힌 경우
               if (photoId && profileImageId && photoId === profileImageId.toString()) {
-                const savedScrollY = sessionStorage.getItem("profileModalScrollY");
-                if (savedScrollY !== null && typeof window !== "undefined") {
-                  setTimeout(() => {
-                    const scrollY = parseInt(savedScrollY, 10);
-                    window.scrollTo({ top: scrollY, behavior: "auto" });
-                    sessionStorage.removeItem("profileModalScrollY");
-                    sessionStorage.removeItem("profileModalId");
-                  }, 150);
-                }
+                // 스크롤 복원은 useEffect에서 처리
                 // lastViewedPhoto를 설정하지 않아서 갤러리로 스크롤되지 않음
               } else {
+                // 일반 갤러리 모달인 경우
+                // 스크롤 복원은 useEffect에서 처리
                 setLastViewedPhoto(photoId);
               }
             }}
@@ -187,6 +220,15 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                             href={`/?photoId=${id}`}
                             ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
                             className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
+                            onClick={() => {
+                              // 이미지 클릭 시 현재 스크롤 위치 저장
+                              if (typeof window !== "undefined") {
+                                // 정확한 스크롤 위치 저장
+                                const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+                                sessionStorage.setItem("galleryModalScrollY", currentScrollY.toString());
+                                sessionStorage.setItem("galleryModalId", id.toString());
+                              }
+                            }}
                           >
                             {imageEl}
                           </Link>
