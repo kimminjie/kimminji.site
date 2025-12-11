@@ -153,7 +153,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
           />
         </div>
       )}
-      <main id="gallery" className="mx-auto max-w-[1960px] p-4">
+      <main id="gallery" className="mx-auto max-w-[1960px] p-4 bg-[#111111]">
         {photoId && (
           <Modal
             images={images}

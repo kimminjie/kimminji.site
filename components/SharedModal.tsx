@@ -61,6 +61,18 @@ export default function SharedModal({
   const downshiftImages = ["북커버.png", "파프리카 카드뉴스.jpg"];
   const isDownshift = downshiftImages.includes(imageFileName);
 
+  // 동화 이미지들 (PDF 다운로드 버튼 표시)
+  const storyImages = ["동화_표지.jpg", "동화.jpg", "동화1.jpg"];
+  const isStoryImage = storyImages.includes(imageFileName);
+
+  // 교보 e북 이미지 (외부 링크 버튼 표시)
+  const isKyoboEbook = currentImage.src === "/images/교보 e북.png";
+  const kyoboEbookUrl = "https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000011155068";
+  
+  // e북 이미지 (네이버 쇼핑 링크 버튼 표시)
+  const isEbook = currentImage.src === "/images/e북.png";
+  const naverShoppingUrl = "https://search.shopping.naver.com/book/search?bookTabType=ALL&pageIndex=1&pageSize=40&query=%EC%88%B2%EC%9D%98%20%EC%A7%91&sort=REL";
+
 
   return (
     <MotionConfig
@@ -127,6 +139,41 @@ export default function SharedModal({
           </div>
           {navigation && (
             <div className="pointer-events-auto flex items-center gap-2 text-white">
+              {/* 교보 e북 이미지일 때 교보문고 링크 버튼 */}
+              {isKyoboEbook && (
+                <a
+                  href={kyoboEbookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-black/50 px-4 py-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white text-sm font-medium"
+                  title="교보문고 바로가기"
+                >
+                  교보문고 바로가기
+                </a>
+              )}
+              {/* e북 이미지일 때 네이버 쇼핑 링크 버튼 */}
+              {isEbook && (
+                <a
+                  href={naverShoppingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-black/50 px-4 py-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white text-sm font-medium"
+                  title="e북 보러가기"
+                >
+                  e북 보러가기
+                </a>
+              )}
+              {/* 동화 이미지일 때 PDF 다운로드 버튼 */}
+              {isStoryImage && (
+                <a
+                  href="/e북 동화.pdf"
+                  download="e북 동화.pdf"
+                  className="rounded-full bg-black/50 px-4 py-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white text-sm font-medium"
+                  title="PDF 다운로드"
+                >
+                  PDF 다운로드
+                </a>
+              )}
               {/* 이미지 저장 버튼 */}
               <a
                 href={currentImage.src}

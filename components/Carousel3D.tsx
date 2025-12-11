@@ -158,7 +158,7 @@ export default function Carousel3D({
   }
 
   return (
-    <div className="relative flex min-h-[88vh] items-center justify-center lg:justify-end bg-[#111111] py-10 px-4 overflow-x-hidden overflow-y-visible">
+    <div className="relative flex min-h-[88vh] items-center justify-center lg:justify-end bg-[#111111] rounded-b-2xl py-10 px-4 overflow-x-hidden overflow-y-visible">
       {/* PORTFOLIO 텍스트 - 모션 뒤에 배치 */}
       <div className="absolute inset-0 flex items-end justify-center lg:justify-start lg:pl-16 lg:pb-12 pb-6 pointer-events-none z-0 overflow-visible">
         <h1
@@ -186,7 +186,7 @@ export default function Carousel3D({
       {/* 모션 영역 - 원래 위치 그대로 유지 */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10"
+        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl"
         style={{ height: "88vh" }}
       >
         {phase === "first" && (
@@ -197,9 +197,9 @@ export default function Carousel3D({
               opacity: transitioningToThird ? 0 : 1,
             }}
           >
-            {/* 위쪽 블러 / 그라데이션 – 전체 배경색(#111111)과 동일한 색으로 경계만 부드럽게 */}
+            {/* 위쪽 블러 / 그라데이션 – 모션 배경색과 동일하게 맞춤 */}
             <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-gradient-to-b from-[#111111] via-[#111111]/60 to-transparent" />
-            {/* 아래쪽 블러 / 그라데이션 – 전체 배경색(#111111)과 동일 */}
+            {/* 아래쪽 블러 / 그라데이션 – 모션 배경색과 동일 */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-[#111111] via-[#111111]/60 to-transparent" />
 
             <div
@@ -227,7 +227,7 @@ export default function Carousel3D({
             className="relative w-full h-full flex items-center justify-center overflow-visible transition-opacity duration-500 ease-in-out"
             style={{ opacity: transitioningToFirst ? 0 : 1 }}
           >
-            {/* 2번 모션 위/아래 블러 – 배경색(#111111)과 같게, 이미지 안쪽은 그대로 두고 바깥쪽만 덮는 느낌 */}
+            {/* 2번 모션 위/아래 블러 – 모션 배경색과 맞춤 */}
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#111111] via-transparent to-transparent" />
             {/* 하단 블러 제거 - PORTFOLIO 텍스트가 보이도록 */}
 
