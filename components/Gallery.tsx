@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
-import Carousel3D from "./Carousel3D";
+import Carousel3D, { type CategoryId } from "./Carousel3D";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
 
@@ -22,6 +22,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const lastViewedPhotoRef = useRef<HTMLAnchorElement | null>(null);
   const prevPhotoIdRef = useRef<string | null>(null);
   const [showCarousel, setShowCarousel] = useState(!photoId);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryId>("ALL");
 
   // 프로필 이미지 찾기
   const profileImage = images.find(
@@ -35,9 +37,6 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     
     // 모달이 닫혔을 때 저장된 스크롤 위치로 복원
     if (prevPhotoId && !currentPhotoId && typeof window !== "undefined") {
-      // 캐러셀을 먼저 숨김
-      setShowCarousel(false);
-      
       // 프로필 모달인 경우
       const savedProfileScrollY = sessionStorage.getItem("profileModalScrollY");
       const savedProfileId = sessionStorage.getItem("profileModalId");
@@ -49,10 +48,6 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
         window.scrollTo({ top: scrollY, behavior: "auto" });
         sessionStorage.removeItem("profileModalScrollY");
         sessionStorage.removeItem("profileModalId");
-        // 스크롤 복원 후 캐러셀 표시
-        setTimeout(() => {
-          setShowCarousel(true);
-        }, 50);
         return; // 프로필 모달 복원 후 종료
       }
       
@@ -73,21 +68,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
         sessionStorage.removeItem("galleryModalScrollY");
         sessionStorage.removeItem("galleryModalId");
         setLastViewedPhoto(null); // lastViewedPhoto 초기화
-        // 스크롤 복원 후 캐러셀 표시
-        setTimeout(() => {
-          setShowCarousel(true);
-        }, 100);
         return; // 갤러리 모달 복원 후 종료
       }
-      
-      // 저장된 스크롤 위치가 없는 경우에도 캐러셀 표시
-      setShowCarousel(true);
-    } else if (!currentPhotoId && !prevPhotoId) {
-      // 모달이 열리지 않은 상태에서는 캐러셀 표시
-      setShowCarousel(true);
-    } else if (currentPhotoId) {
-      // 모달이 열린 상태에서는 캐러셀 숨김
-      setShowCarousel(false);
     }
     
     // 마지막으로 본 사진 위치로 스크롤은 하지 않음 (저장된 스크롤 위치로 복원하므로)
@@ -98,6 +80,36 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     // 이전 photoId 업데이트
     prevPhotoIdRef.current = currentPhotoId;
   }, [photoId, lastViewedPhoto, setLastViewedPhoto, profileImageId]);
+
+  // 카테고리 정의
+  const CATEGORY_DEFS = [
+    { id: "ALL" as const, label: "전체" },
+    { id: "EDITORIAL" as const, label: "편집 · 출판 디자인" },
+    { id: "POSTER" as const, label: "포스터 · 비주얼 그래픽" },
+    { id: "DIGITAL" as const, label: "디지털 콘텐츠 디자인" },
+    { id: "BRAND" as const, label: "브랜드 · 패키지 디자인" },
+  ];
+
+  // 이미지별 카테고리 매핑 (추후 사용자 정의)
+  const imageCategoryMap: Record<
+    string,
+    (typeof CATEGORY_DEFS)[number]["id"]
+  > = {
+    // 예시)
+    // "/images/북커버.png": "EDITORIAL",
+    // "/images/공익 포스터.jpg": "POSTER",
+    // "/images/모바일 디자인.jpg": "DIGITAL",
+    // "/images/패키지.png": "BRAND",
+  };
+
+  // 현재 선택된 카테고리에 맞는 이미지 필터링
+  const filteredImages = images.filter((img) => {
+    if (selectedCategory === "ALL") return true;
+    const cat = imageCategoryMap[img.src];
+    // 아직 카테고리가 지정되지 않은 이미지는 일단 항상 노출
+    if (!cat) return true;
+    return cat === selectedCategory;
+  });
 
   // 1번 모션: 모바일 디자인.jpg
   const mobileDesignImage = images.find(
@@ -143,17 +155,34 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
   return (
     <>
-      {/* 모션 캐러셀 - 최상단 (작업 이미지 모달 열렸을 때는 숨김) */}
-      {showCarousel && (
-        <div className="w-full">
-          <Carousel3D 
-            imageData={carouselImageData} 
-            thirdImages={storyImages}
-            profileImageId={profileImage?.id}
-          />
-        </div>
-      )}
-      <main id="gallery" className="mx-auto max-w-[1960px] p-4 bg-[#111111]">
+      {/* 모션 캐러셀 - 최상단 (모달이 열려도 계속 렌더링하여 모션 유지) */}
+      <div className={`w-full ${photoId ? 'pointer-events-none' : ''}`} style={{ visibility: photoId ? 'hidden' : 'visible' }}>
+        <Carousel3D 
+          imageData={carouselImageData} 
+          thirdImages={storyImages}
+          profileImageId={profileImage?.id}
+          onMenuClick={() => setShowCategoryMenu((v) => !v)}
+          showCategoryMenu={showCategoryMenu}
+          selectedCategory={selectedCategory}
+          onCategorySelect={(id) => {
+            setSelectedCategory(id);
+            setShowCategoryMenu(false);
+
+            if (id === "ALL") {
+              const el = document.getElementById("gallery");
+              if (el) {
+                setTimeout(() => {
+                  el.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }, 200);
+              }
+            }
+          }}
+        />
+      </div>
+      <main id="gallery" className="mx-auto max-w-[1960px] p-4 bg-[#FEFBF9]">
         {photoId && (
           <Modal
             images={images}
@@ -178,7 +207,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
               {/* 줄별로 그룹화하여 렌더링 (모션용 이미지는 그대로 보여주되, 같은 src는 한 번만) */}
               {[1, 2, 3, 4].map((rowNum) => {
-                const rowImages = images.filter((img) => img.row === rowNum);
+                const rowImages = filteredImages.filter((img) => img.row === rowNum);
                 return (
                   <div key={rowNum} className="contents">
                     {rowImages.map(({ id, src, width, height, blurDataUrl }, idx) => {

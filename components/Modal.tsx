@@ -42,12 +42,17 @@ export default function Modal({
     }
   }, [photoId, images.length]);
 
+  const currentImage = images[curIndex];
+  const isProfileModal = currentImage?.src === "/images/프로필.png";
+
   function handleClose() {
     router.push("/");
     onClose();
   }
 
   function changePhotoId(newVal: number) {
+    // 프로필 모달인 경우에는 다른 이미지로 넘기지 않음
+    if (isProfileModal) return;
     // 유효한 범위 체크
     if (newVal < 0 || newVal >= images.length) {
       return;
@@ -71,6 +76,7 @@ export default function Modal({
   }
 
   useKeypress("ArrowRight", () => {
+    if (isProfileModal) return;
     const current = indexRef.current;
     if (current + 1 < images.length) {
       changePhotoId(current + 1);
@@ -78,6 +84,7 @@ export default function Modal({
   });
 
   useKeypress("ArrowLeft", () => {
+    if (isProfileModal) return;
     const current = indexRef.current;
     if (current > 0) {
       changePhotoId(current - 1);
@@ -106,7 +113,7 @@ export default function Modal({
         images={images}
         changePhotoId={changePhotoId}
         closeModal={handleClose}
-        navigation={true}
+        navigation={!isProfileModal}
       />
     </Dialog>
   );

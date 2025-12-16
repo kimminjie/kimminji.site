@@ -38,11 +38,13 @@ export default function SharedModal({
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
+      if (!navigation) return;
       if (index < images?.length - 1) {
         changePhotoId(index + 1);
       }
     },
     onSwipedRight: () => {
+      if (!navigation) return;
       if (index > 0) {
         changePhotoId(index - 1);
       }
@@ -84,7 +86,7 @@ export default function SharedModal({
       <div
         className="relative z-50 flex w-full max-w-5xl items-center justify-center"
         style={{ height: "90vh", maxHeight: "90vh" }}
-        {...handlers}
+        {...(navigation ? handlers : {})}
       >
         {/* Main image */}
         <div
@@ -241,38 +243,40 @@ export default function SharedModal({
               className="mx-auto mt-6 mb-6 flex aspect-[3/2] h-14"
             >
               <AnimatePresence initial={false}>
-                {filteredImages.map(({ src, width, height, id }) => (
-                  <motion.button
-                    initial={{
-                      width: "0%",
-                      x: `${Math.max((index - 1) * -100, 15 * -100)}%`,
-                    }}
-                    animate={{
-                      scale: id === index ? 1.25 : 1,
-                      width: "100%",
-                      x: `${Math.max(index * -100, 15 * -100)}%`,
-                    }}
-                    exit={{ width: "0%" }}
-                    onClick={() => changePhotoId(id)}
-                    key={id}
-                    className={`${id === index
-                      ? "z-20 rounded-md shadow shadow-black/50"
-                      : "z-10"
-                      } ${id === 0 ? "rounded-l-md" : ""} ${id === images.length - 1 ? "rounded-r-md" : ""
-                      } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
-                  >
-                    <Image
-                      alt="small photos on the bottom"
-                      width={180}
-                      height={120}
+                {filteredImages
+                  ?.filter((img) => img.src !== "/images/프로필.png")
+                  .map(({ src, width, height, id }) => (
+                    <motion.button
+                      initial={{
+                        width: "0%",
+                        x: `${Math.max((index - 1) * -100, 15 * -100)}%`,
+                      }}
+                      animate={{
+                        scale: id === index ? 1.25 : 1,
+                        width: "100%",
+                        x: `${Math.max(index * -100, 15 * -100)}%`,
+                      }}
+                      exit={{ width: "0%" }}
+                      onClick={() => changePhotoId(id)}
+                      key={id}
                       className={`${id === index
-                        ? "brightness-110 hover:brightness-110"
-                        : "brightness-50 contrast-125 hover:brightness-75"
-                        } h-full transform object-cover transition`}
-                      src={src}
-                    />
-                  </motion.button>
-                ))}
+                        ? "z-20 rounded-md shadow shadow-black/50"
+                        : "z-10"
+                        } ${id === 0 ? "rounded-l-md" : ""} ${id === images.length - 1 ? "rounded-r-md" : ""
+                        } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                    >
+                      <Image
+                        alt="small photos on the bottom"
+                        width={180}
+                        height={120}
+                        className={`${id === index
+                          ? "brightness-110 hover:brightness-110"
+                          : "brightness-50 contrast-125 hover:brightness-75"
+                          } h-full transform object-cover transition`}
+                        src={src}
+                      />
+                    </motion.button>
+                  ))}
               </AnimatePresence>
             </motion.div>
           </div>

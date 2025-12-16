@@ -6,16 +6,26 @@ import { useEffect, useRef, useState } from "react";
 import type { ImageProps } from "../utils/types";
 import AutoBookFlip from "./AutoBookFlip";
 
+export type CategoryId = "ALL" | "EDITORIAL" | "POSTER" | "DIGITAL" | "BRAND";
+
 interface Carousel3DProps {
   imageData: ImageProps[];      // 1, 2번 모션용
   thirdImages?: ImageProps[];  // 3번 모션용
   profileImageId?: number;      // 프로필 이미지 id
+  onMenuClick?: () => void;     // 상단 MENU 클릭 시 호출 (카테고리 드롭다운 토글)
+  showCategoryMenu?: boolean;   // 카테고리 드롭다운 열림 여부
+  selectedCategory?: CategoryId;
+  onCategorySelect?: (id: CategoryId) => void;
 }
 
 export default function Carousel3D({
   imageData,
   thirdImages = [],
   profileImageId,
+  onMenuClick,
+  showCategoryMenu,
+  selectedCategory = "ALL",
+  onCategorySelect,
 }: Carousel3DProps) {
   const router = useRouter();
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -31,6 +41,7 @@ export default function Carousel3D({
   const [imageHeight, setImageHeight] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // 1번 모션용 첫 번째 이미지 (세로 스크롤), 나머지는 2번 모션용 3D 캐러셀
   const firstImage = imageData[0];
@@ -38,9 +49,17 @@ export default function Carousel3D({
 
   useEffect(() => {
     setMounted(true);
+    const updateIsMobile = () => setIsMobile(window.innerWidth < 1024);
+    updateIsMobile();
+    window.addEventListener("resize", updateIsMobile);
+
     if (containerRef.current) {
       setContainerHeight(containerRef.current.clientHeight);
     }
+
+    return () => {
+      window.removeEventListener("resize", updateIsMobile);
+    };
   }, []);
 
   // phase 전환 시 필요한 상태 리셋
@@ -151,42 +170,116 @@ export default function Carousel3D({
 
   if (!firstImage) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center bg-[#111111] py-20">
+      <div className="flex min-h-[80vh] items-center justify-center bg-[#FEFBF9] py-20">
         {/* 이미지를 찾을 수 없습니다 */}
       </div>
     );
   }
 
+  const CATEGORY_DEFS: { id: CategoryId; label: string }[] = [
+    { id: "ALL", label: "전체" },
+    { id: "EDITORIAL", label: "편집 · 출판 디자인" },
+    { id: "POSTER", label: "포스터 · 비주얼 그래픽" },
+    { id: "DIGITAL", label: "디지털 콘텐츠 디자인" },
+    { id: "BRAND", label: "브랜드 · 패키지 디자인" },
+  ];
+
   return (
-    <div className="relative flex min-h-[88vh] items-center justify-center lg:justify-end bg-[#111111] rounded-b-2xl py-10 px-4 overflow-x-hidden overflow-y-visible">
-      {/* PORTFOLIO 텍스트 - 모션 뒤에 배치 */}
-      <div className="absolute inset-0 flex items-end justify-center lg:justify-start lg:pl-16 lg:pb-12 pb-6 pointer-events-none z-0 overflow-visible">
-        <h1
-          className="font-black text-[10.625rem] lg:text-[15.625rem] leading-none whitespace-nowrap"
-          style={{
-            WebkitTextStroke: "2px #808080",
-            WebkitTextFillColor: "transparent",
-            color: "transparent",
-          } as React.CSSProperties}
-        >
-          PORTFOLIO
-        </h1>
-      </div>
-      {/* Kim / Minji 텍스트 - PORTFOLIO 위에 배치 */}
-      <div className="absolute inset-0 flex items-start justify-center lg:justify-start lg:pl-16 pt-4 pointer-events-none z-5">
-        <div className="flex flex-col leading-none text-white font-bold text-[10.625rem] lg:text-[15.625rem]">
-          <span>Kim</span>
-          <span className="mt-2">Minji</span>
+    <div
+      className="relative flex flex-col lg:flex-row min-h-[88vh] items-center justify-center lg:justify-end rounded-b-2xl py-10 px-4 sm:px-6 md:px-10 overflow-x-hidden overflow-y-hidden gap-6"
+      style={{ backgroundColor: '#F7F5F2' }}
+    >
+      {/* 상단 회색 스트립 */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gray-300 z-20"></div>
+
+      {/* 헤더 텍스트 */}
+      <div className="absolute top-8 lg:top-10 left-6 lg:left-12 z-20 flex flex-col">
+        <div className="ml-1 lg:ml-2 text-2xl md:text-3xl text-[#E45438] font-sans font-bold tracking-wide">
+          KIM MINJI
+        </div>
+        <div className="text-6xl lg:text-8xl font-serif text-[#E45438] font-bold mt-6 lg:mt-8 leading-none">
+          PROJECTS
         </div>
       </div>
 
+      {/* 중앙: PROFILE */}
+      <div
+        className="absolute top-8 lg:top-10 left-1/2 -translate-x-1/2 z-20 text-[#E45438] font-sans font-bold text-2xl md:text-3xl tracking-wide cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => {
+          if (profileImageId !== undefined) {
+            router.push(`/?photoId=${profileImageId}`);
+          }
+        }}
+      >
+        PROFILE
+      </div>
 
+      {/* 오른쪽: MENU 버튼 */}
+      <div className="absolute top-8 lg:top-10 right-6 lg:right-12 z-30 flex flex-col items-end space-y-2">
+        <button
+          type="button"
+          className="text-[#E45438] font-sans font-bold text-2xl md:text-3xl tracking-wide hover:opacity-80 transition-opacity"
+          onClick={onMenuClick}
+        >
+          MENU
+        </button>
+      </div>
 
+      {/* 전체 화면 카테고리 메뉴 오버레이 */}
+      {showCategoryMenu && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md transition-opacity">
+          <div className="w-full max-w-5xl px-6 sm:px-10 flex items-start justify-start relative">
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              className="absolute top-0 right-0 text-white text-2xl sm:text-3xl hover:opacity-80"
+              onClick={onMenuClick}
+            >
+              ×
+            </button>
 
-      {/* 모션 영역 - 원래 위치 그대로 유지 */}
+            {/* 왼쪽 큰 MENU 텍스트 */}
+            <div className="flex-none w-32 sm:w-40 mr-12 sm:mr-20">
+              <span className="text-[#E45438] font-sans text-3xl sm:text-4xl font-semibold">
+                Menu
+              </span>
+            </div>
+
+            {/* 오른쪽 카테고리 리스트 */}
+            <div className="flex-1 space-y-4 sm:space-y-6 text-white">
+              {CATEGORY_DEFS.map((cat, idx) => {
+                const isActive = selectedCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`w-full flex items-center justify-between border-b border-white/25 pb-3 sm:pb-4 last:border-b-0 transition-colors ${isActive
+                      ? "text-white"
+                      : "text-white/80 hover:text-white"
+                      }`}
+                    onClick={() => onCategorySelect && onCategorySelect(cat.id)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-white/60">
+                        {String(idx + 1).padStart(2, "0")}.
+                      </span>
+                      <span className="font-sans text-2xl sm:text-3xl font-semibold">
+                        {cat.label}
+                      </span>
+                    </div>
+                    <span className="text-sm sm:text-base text-white/70">↗</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 모션 영역 */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl"
+        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl mt-16"
         style={{ height: "88vh" }}
       >
         {phase === "first" && (
@@ -197,10 +290,9 @@ export default function Carousel3D({
               opacity: transitioningToThird ? 0 : 1,
             }}
           >
-            {/* 위쪽 블러 / 그라데이션 – 모션 배경색과 동일하게 맞춤 */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 bg-gradient-to-b from-[#111111] via-[#111111]/60 to-transparent" />
-            {/* 아래쪽 블러 / 그라데이션 – 모션 배경색과 동일 */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-[#111111] via-[#111111]/60 to-transparent" />
+            {/* 2번 모션 위/아래 블러 – 원래 상태(그라데이션)로 복원 */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#F7F5F2] via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#F7F5F2] via-transparent to-transparent" />
 
             <div
               ref={imageWrapperRef}
@@ -227,9 +319,6 @@ export default function Carousel3D({
             className="relative w-full h-full flex items-center justify-center overflow-visible transition-opacity duration-500 ease-in-out"
             style={{ opacity: transitioningToFirst ? 0 : 1 }}
           >
-            {/* 2번 모션 위/아래 블러 – 모션 배경색과 맞춤 */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#111111] via-transparent to-transparent" />
-            {/* 하단 블러 제거 - PORTFOLIO 텍스트가 보이도록 */}
 
             {secondMotionImages.map((img, index) => {
               const total = secondMotionImages.length;
@@ -238,7 +327,7 @@ export default function Carousel3D({
               if (diff < -total / 2) diff += total;
 
               const absDiff = Math.abs(diff);
-              const baseTranslateX = 260;
+              const baseTranslateX = isMobile ? 0 : 260;
 
               let translateX = diff * baseTranslateX;
               let scale = 1;
@@ -246,7 +335,13 @@ export default function Carousel3D({
               let opacity = 1;
               let zIndex = 10 - absDiff;
 
-              if (absDiff === 0) {
+              if (isMobile) {
+                translateX = 0;
+                rotateY = 0;
+                scale = absDiff === 0 ? 1 : 0.96;
+                opacity = absDiff === 0 ? 1 : 0;
+                zIndex = absDiff === 0 ? 10 : 0;
+              } else if (absDiff === 0) {
                 scale = 1;
                 rotateY = 0;
                 opacity = 1;
@@ -278,7 +373,7 @@ export default function Carousel3D({
                     width={img.width}
                     height={img.height}
                     alt="Bodoni editorial"
-                    className="h-auto w-auto max-h-[70vh] rounded-lg shadow-2xl object-contain"
+                    className="h-auto w-auto max-h-[130vh] rounded-lg shadow-2xl object-contain"
                     priority={index === currentIndex}
                   />
                 </div>

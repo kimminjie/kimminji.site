@@ -122,7 +122,7 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
                   width={img.width}
                   height={img.height}
                   alt="Book page"
-                  className="h-auto w-auto max-h-[70vh] rounded-lg shadow-2xl object-contain"
+                  className="h-auto w-auto max-h-[80vh] rounded-lg shadow-2xl object-contain"
                   style={{
                     transform: flipProgress > 0.5 ? "scaleX(-1)" : "scaleX(1)",
                   }}
@@ -148,7 +148,7 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
                   width={img.width}
                   height={img.height}
                   alt="Book page"
-                  className="h-auto w-auto max-h-[70vh] rounded-lg shadow-2xl object-contain"
+                  className="h-auto w-auto max-h-[80vh] rounded-lg shadow-2xl object-contain"
                 />
               </div>
             );
@@ -172,14 +172,14 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
                 transition: "none", // 고정 위치 유지
               }}
             >
-              <Image
-                src={img.src}
-                width={img.width}
-                height={img.height}
-                alt="Book page"
-                className="h-auto w-auto max-h-[70vh] rounded-lg shadow-2xl object-contain"
-                style={{ transform: "scaleX(-1) !important" }}
-              />
+            <Image
+              src={img.src}
+              width={img.width}
+              height={img.height}
+              alt="Book page"
+              className="h-auto w-auto max-h-[80vh] rounded-lg shadow-2xl object-contain"
+              style={{ transform: "scaleX(-1) !important" }}
+            />
             </div>
           );
         }
@@ -207,7 +207,7 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
                 width={img.width}
                 height={img.height}
                 alt="Book page"
-                className="h-auto w-auto max-h-[70vh] rounded-lg shadow-2xl object-contain"
+                className="h-auto w-auto max-h-[80vh] rounded-lg shadow-2xl object-contain"
                 style={{ filter: "none !important" }}
               />
             </div>
