@@ -184,6 +184,13 @@ export default function Carousel3D({
     { id: "BRAND", label: "브랜드 · 패키지 디자인" },
   ];
 
+  // OS별 한글/영문/숫자 폴백이 섞여 보이는 걸 방지하기 위해, 이 영역만 폰트 스택을 고정
+  const uiSansFamily =
+    '"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Segoe UI",system-ui,sans-serif';
+
+  const headerTextButtonBase =
+    "inline-flex items-center justify-center select-none leading-none text-[#E45438] font-sans font-bold text-2xl md:text-3xl tracking-wide transition-transform transition-colors duration-150 ease-out hover:text-[#C63B25] hover:scale-[1.06] active:scale-[0.98] focus-visible:outline-none focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none";
+
   return (
     <div
       className="relative flex flex-col lg:flex-row min-h-[88vh] items-center justify-center lg:justify-end rounded-b-2xl py-10 px-4 sm:px-6 md:px-10 overflow-x-hidden overflow-y-hidden gap-6"
@@ -193,7 +200,10 @@ export default function Carousel3D({
       <div className="absolute top-0 left-0 w-full h-1 bg-gray-300 z-20"></div>
 
       {/* 헤더 텍스트 */}
-      <div className="absolute top-8 lg:top-10 left-6 lg:left-12 z-20 flex flex-col">
+      <div
+        className="absolute top-6 lg:top-8 left-6 lg:left-12 z-20 flex flex-col"
+        style={{ fontFamily: uiSansFamily }}
+      >
         <div className="ml-1 lg:ml-2 text-2xl md:text-3xl text-[#E45438] font-sans font-bold tracking-wide">
           KIM MINJI
         </div>
@@ -202,9 +212,141 @@ export default function Carousel3D({
         </div>
       </div>
 
-      {/* 중앙: PROFILE */}
+      {/* 좌측 하단: 연락처 (아이콘 + 텍스트) */}
       <div
-        className="absolute top-8 lg:top-10 left-1/2 -translate-x-1/2 z-20 text-[#E45438] font-sans font-bold text-2xl md:text-3xl tracking-wide cursor-pointer hover:opacity-80 transition-opacity"
+        className="absolute left-4 sm:left-6 lg:left-12 bottom-24 sm:bottom-28 lg:bottom-32 z-20 font-sans w-[min(92vw,900px)]"
+        style={{ fontFamily: uiSansFamily }}
+      >
+        {/* 2행 x 2열로 고정해서 행 정렬 맞추기 */}
+        <div className="grid grid-cols-1 sm:grid-cols-[auto_auto] sm:grid-rows-2 gap-x-10 gap-y-2 items-start sm:items-center text-[#E45438]">
+          {/* phone */}
+          <div className="flex items-center gap-3 sm:col-start-1 sm:row-start-1">
+            <span
+              className="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#E45438]"
+              aria-hidden="true"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7.5 3.75c.5 0 .94.31 1.12.78l1.06 2.75c.16.41.05.88-.28 1.18l-1.3 1.2a1 1 0 0 0-.27 1.02c.55 1.78 1.6 3.62 3.13 5.16 1.54 1.54 3.38 2.58 5.16 3.13a1 1 0 0 0 1.02-.27l1.2-1.3c.3-.33.77-.44 1.18-.28l2.75 1.06c.47.18.78.62.78 1.12V20a2 2 0 0 1-2 2h-.5C10.49 22 2 13.51 2 3.5V3a2 2 0 0 1 2-2h3.5Z"
+                  fill="white"
+                />
+              </svg>
+            </span>
+            <span className="text-base sm:text-lg md:text-xl leading-none tracking-wide cursor-default">
+              010 - 2840 - 5951
+            </span>
+          </div>
+
+          {/* email */}
+          <div className="flex items-center gap-3 sm:col-start-1 sm:row-start-2">
+            <span
+              className="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#E45438]"
+              aria-hidden="true"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-11Z"
+                  fill="white"
+                  fillOpacity="0"
+                />
+                <path
+                  d="M6.5 6h11A1.5 1.5 0 0 1 19 7.5v.26l-6.37 4.06a1.25 1.25 0 0 1-1.26 0L5 7.76V7.5A1.5 1.5 0 0 1 6.5 6Zm12.5 3.05-5.83 3.72a3.25 3.25 0 0 1-3.34 0L5 9.05V17.5A1.5 1.5 0 0 0 6.5 19h11a1.5 1.5 0 0 0 1.5-1.5V9.05Z"
+                  fill="white"
+                />
+              </svg>
+            </span>
+            <span className="text-base sm:text-lg md:text-xl leading-none tracking-wide cursor-default">
+              nnind0112@gmail.com
+            </span>
+          </div>
+
+          {/* name */}
+          <div className="flex items-center divide-x divide-[#E45438]/40 text-base sm:text-lg md:text-xl leading-none tracking-wide sm:col-start-2 sm:row-start-1">
+            <span className="pr-4 font-semibold">김민지</span>
+            <span className="pl-4 opacity-80">Kim Min Ji</span>
+          </div>
+
+          {/* birth / address */}
+          <div className="flex items-center divide-x divide-[#E45438]/40 text-base sm:text-lg md:text-xl leading-none tracking-wide sm:col-start-2 sm:row-start-2">
+            <span className="pr-4 tabular-nums opacity-80">2005.01.12</span>
+            <span className="pl-4 opacity-80">서울특별시 관악구</span>
+          </div>
+        </div>
+
+        {/* tools icons */}
+        <div className="mt-8 sm:mt-10 flex w-full items-end flex-wrap sm:flex-nowrap gap-y-4 sm:gap-y-0">
+          {/* left group: Ai + Ps (closer together) */}
+          <div className="flex items-end gap-6">
+            <Image
+              src="/Adobe_Illustrator.png"
+              alt="Adobe Illustrator"
+              width={96}
+              height={96}
+              className="h-[52px] w-[52px] sm:h-[60px] sm:w-[60px] md:h-[72px] md:w-[72px] object-contain shrink-0"
+            />
+            <Image
+              src="/Adobe_Photoshop.png"
+              alt="Adobe Photoshop"
+              width={96}
+              height={96}
+              className="h-[52px] w-[52px] sm:h-[60px] sm:w-[60px] md:h-[72px] md:w-[72px] object-contain shrink-0"
+            />
+          </div>
+
+          {/* spacer: move the right group further left (1:3 split) */}
+          <div className="hidden sm:block flex-[1]" />
+
+          {/* right group */}
+          <div className="flex items-end gap-6">
+            <Image
+              src="/Adobe_Indesign.png"
+              alt="Adobe InDesign"
+              width={80}
+              height={80}
+              className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 object-contain shrink-0"
+            />
+            <Image
+              src="/Adobe_After_Effects.png"
+              alt="Adobe After Effects"
+              width={80}
+              height={80}
+              className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 object-contain shrink-0"
+            />
+            <Image
+              src="/B_figma.png"
+              alt="Figma"
+              width={80}
+              height={80}
+              className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 object-contain shrink-0"
+            />
+          </div>
+
+          <div className="hidden sm:block flex-[3]" />
+        </div>
+      </div>
+
+      {/* 중앙: PROFILE */}
+      <button
+        type="button"
+        aria-label="Open profile"
+        disabled={profileImageId === undefined}
+        className={[
+          "absolute top-6 lg:top-8 left-1/2 -translate-x-1/2 z-20",
+          headerTextButtonBase,
+        ].join(" ")}
+        style={{ fontFamily: uiSansFamily }}
         onClick={() => {
           if (profileImageId !== undefined) {
             router.push(`/?photoId=${profileImageId}`);
@@ -212,13 +354,18 @@ export default function Carousel3D({
         }}
       >
         PROFILE
-      </div>
+      </button>
 
       {/* 오른쪽: MENU 버튼 */}
-      <div className="absolute top-8 lg:top-10 right-6 lg:right-12 z-30 flex flex-col items-end space-y-2">
+      <div className="absolute top-6 lg:top-8 right-6 lg:right-12 z-30 flex flex-col items-end space-y-2">
         <button
           type="button"
-          className="text-[#E45438] font-sans font-bold text-2xl md:text-3xl tracking-wide hover:opacity-80 transition-opacity"
+          aria-label="Open menu"
+          disabled={!onMenuClick}
+          className={[
+            headerTextButtonBase,
+          ].join(" ")}
+          style={{ fontFamily: uiSansFamily }}
           onClick={onMenuClick}
         >
           MENU
@@ -279,7 +426,7 @@ export default function Carousel3D({
       {/* 모션 영역 */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl mt-16"
+        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl mt-20 lg:mt-24 -translate-y-6 lg:-translate-y-8"
         style={{ height: "88vh" }}
       >
         {phase === "first" && (

@@ -58,6 +58,7 @@ export default function SharedModal({
   const scrollableImages = ["모바일 디자인.jpg", "책자.jpg", "프로필.png"];
   const imageFileName = currentImage.src.split("/").pop() || "";
   const isScrollable = scrollableImages.includes(imageFileName);
+  const isProfileImage = imageFileName === "프로필.png";
 
   // 너무 위로 붙어 보이는 가로형 배너 이미지들 약간 아래로 내리기
   const downshiftImages = ["북커버.png", "파프리카 카드뉴스.jpg"];
@@ -125,20 +126,32 @@ export default function SharedModal({
           </div>
         </div>
 
-        {/* Top buttons (X & open fullsize) */}
-        <div className="pointer-events-none absolute inset-x-0 top-8 z-50 flex max-w-5xl justify-between px-6">
-          <div className="pointer-events-auto flex items-center gap-2 text-white">
-            <button
-              onClick={() => closeModal()}
-              className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-            >
-              {navigation ? (
-                <XMarkIcon className="h-5 w-5" />
-              ) : (
-                <ArrowUturnLeftIcon className="h-5 w-5" />
-              )}
-            </button>
-          </div>
+        {/* Top buttons (close / actions) */}
+        <div
+          className={[
+            "pointer-events-none absolute inset-x-0 top-8 z-50 flex max-w-5xl px-6",
+            navigation ? "justify-between" : isProfileImage ? "justify-end" : "justify-start",
+          ].join(" ")}
+        >
+          {/* Left: default close/back button (not for profile image) */}
+          {!isProfileImage && (
+            <div className="pointer-events-auto flex items-center gap-2 text-white">
+              <button
+                type="button"
+                aria-label={navigation ? "Close" : "Back"}
+                onClick={() => closeModal()}
+                className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+              >
+                {navigation ? (
+                  <XMarkIcon className="h-5 w-5" />
+                ) : (
+                  <ArrowUturnLeftIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Right: actions (navigation only) */}
           {navigation && (
             <div className="pointer-events-auto flex items-center gap-2 text-white">
               {/* 교보 e북 이미지일 때 교보문고 링크 버튼 */}
@@ -195,6 +208,20 @@ export default function SharedModal({
               >
                 <ArrowTopRightOnSquareIcon className="h-5 w-5" />
               </a>
+            </div>
+          )}
+
+          {/* Right: profile image close (X) */}
+          {isProfileImage && (
+            <div className="pointer-events-auto flex items-center gap-2 text-white">
+              <button
+                type="button"
+                aria-label="Close profile"
+                onClick={() => closeModal()}
+                className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
             </div>
           )}
         </div>
