@@ -189,7 +189,7 @@ export default function Carousel3D({
     '"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Segoe UI",system-ui,sans-serif';
 
   const headerTextButtonBase =
-    "inline-flex items-center justify-center select-none leading-none text-[#E45438] font-sans font-bold text-xl sm:text-2xl md:text-3xl tracking-wide transition-transform transition-colors duration-150 ease-out hover:text-[#C63B25] hover:scale-[1.06] active:scale-[0.98] focus-visible:outline-none focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none";
+    "inline-flex items-center justify-center select-none leading-none text-[#E45438] font-sans font-bold text-2xl md:text-3xl tracking-wide transition-transform transition-colors duration-150 ease-out hover:text-[#C63B25] hover:scale-[1.06] active:scale-[0.98] focus-visible:outline-none focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none";
 
   return (
     <div
@@ -204,10 +204,10 @@ export default function Carousel3D({
         className="absolute top-6 lg:top-8 left-6 lg:left-12 z-20 flex flex-col"
         style={{ fontFamily: uiSansFamily }}
       >
-        <div className="ml-1 lg:ml-2 text-xl sm:text-2xl md:text-3xl text-[#E45438] font-sans font-bold tracking-wide">
+        <div className="ml-1 lg:ml-2 text-2xl md:text-3xl text-[#E45438] font-sans font-bold tracking-wide">
           KIM MINJI
         </div>
-        <div className="text-5xl sm:text-6xl lg:text-8xl font-serif text-[#E45438] font-bold mt-6 lg:mt-8 leading-none">
+        <div className="text-6xl lg:text-8xl font-serif text-[#E45438] font-bold mt-6 lg:mt-8 leading-none">
           PROJECTS
         </div>
       </div>

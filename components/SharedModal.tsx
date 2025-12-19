@@ -76,6 +76,24 @@ export default function SharedModal({
   const isEbook = currentImage.src === "/images/e북.png";
   const naverShoppingUrl = "https://search.shopping.naver.com/book/search?bookTabType=ALL&pageIndex=1&pageSize=40&query=%EC%88%B2%EC%9D%98%20%EC%A7%91&sort=REL";
 
+  // 편집 모달, 포스터 모달, 디지털 모달, 또는 브랜드 모달에서 온 경우 확인
+  const [fromEditorialModal, setFromEditorialModal] = useState(false);
+  const [fromPosterModal, setFromPosterModal] = useState(false);
+  const [fromDigitalModal, setFromDigitalModal] = useState(false);
+  const [fromBrandModal, setFromBrandModal] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const editorialFlag = sessionStorage.getItem("fromEditorialModal");
+      const posterFlag = sessionStorage.getItem("fromPosterModal");
+      const digitalFlag = sessionStorage.getItem("fromDigitalModal");
+      const brandFlag = sessionStorage.getItem("fromBrandModal");
+      setFromEditorialModal(editorialFlag === "true");
+      setFromPosterModal(posterFlag === "true");
+      setFromDigitalModal(digitalFlag === "true");
+      setFromBrandModal(brandFlag === "true");
+    }
+  }, []);
+
 
   return (
     <MotionConfig
@@ -138,11 +156,13 @@ export default function SharedModal({
             <div className="pointer-events-auto flex items-center gap-2 text-white">
               <button
                 type="button"
-                aria-label={navigation ? "Close" : "Back"}
+                aria-label={fromEditorialModal || fromPosterModal || fromDigitalModal || fromBrandModal ? "Back" : navigation ? "Close" : "Back"}
                 onClick={() => closeModal()}
                 className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
               >
-                {navigation ? (
+                {fromEditorialModal || fromPosterModal || fromDigitalModal || fromBrandModal ? (
+                  <ArrowUturnLeftIcon className="h-5 w-5" />
+                ) : navigation ? (
                   <XMarkIcon className="h-5 w-5" />
                 ) : (
                   <ArrowUturnLeftIcon className="h-5 w-5" />

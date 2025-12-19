@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -8,6 +10,7 @@ import Modal from "./Modal";
 import Carousel3D, { type CategoryId } from "./Carousel3D";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
+import { range } from "../utils/range";
 
 interface GalleryProps {
   images: ImageProps[];
@@ -24,6 +27,16 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const [showCarousel, setShowCarousel] = useState(!photoId);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>("ALL");
+  const [showEditorialModal, setShowEditorialModal] = useState(false);
+  const [showPosterModal, setShowPosterModal] = useState(false);
+  const [showDigitalModal, setShowDigitalModal] = useState(false);
+  const [showBrandModal, setShowBrandModal] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
+  const [allModalIndex, setAllModalIndex] = useState(0);
+  const [editorialModalIndex, setEditorialModalIndex] = useState(0);
+  const [posterModalIndex, setPosterModalIndex] = useState(0);
+  const [digitalModalIndex, setDigitalModalIndex] = useState(0);
+  const [brandModalIndex, setBrandModalIndex] = useState(0);
 
   // 프로필 이미지 찾기
   const profileImage = images.find(
@@ -54,8 +67,65 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
       // 일반 갤러리 모달인 경우
       const savedGalleryScrollY = sessionStorage.getItem("galleryModalScrollY");
       const savedGalleryId = sessionStorage.getItem("galleryModalId");
+      const fromEditorialModal = sessionStorage.getItem("fromEditorialModal");
+      const fromPosterModal = sessionStorage.getItem("fromPosterModal");
+      const fromDigitalModal = sessionStorage.getItem("fromDigitalModal");
+      const fromBrandModal = sessionStorage.getItem("fromBrandModal");
+      
       if (savedGalleryScrollY !== null && savedGalleryId && 
           prevPhotoId === savedGalleryId) {
+        // 편집 모달에서 왔다면 편집 모달 다시 열기
+        if (fromEditorialModal === "true") {
+          sessionStorage.removeItem("fromEditorialModal");
+          sessionStorage.removeItem("galleryModalScrollY");
+          sessionStorage.removeItem("galleryModalId");
+          setLastViewedPhoto(null);
+          // 편집 모달 다시 열기
+          setTimeout(() => {
+            setShowEditorialModal(true);
+          }, 100);
+          return;
+        }
+        
+        // 포스터 모달에서 왔다면 포스터 모달 다시 열기
+        if (fromPosterModal === "true") {
+          sessionStorage.removeItem("fromPosterModal");
+          sessionStorage.removeItem("galleryModalScrollY");
+          sessionStorage.removeItem("galleryModalId");
+          setLastViewedPhoto(null);
+          // 포스터 모달 다시 열기
+          setTimeout(() => {
+            setShowPosterModal(true);
+          }, 100);
+          return;
+        }
+        
+        // 디지털 모달에서 왔다면 디지털 모달 다시 열기
+        if (fromDigitalModal === "true") {
+          sessionStorage.removeItem("fromDigitalModal");
+          sessionStorage.removeItem("galleryModalScrollY");
+          sessionStorage.removeItem("galleryModalId");
+          setLastViewedPhoto(null);
+          // 디지털 모달 다시 열기
+          setTimeout(() => {
+            setShowDigitalModal(true);
+          }, 100);
+          return;
+        }
+        
+        // 브랜드 모달에서 왔다면 브랜드 모달 다시 열기
+        if (fromBrandModal === "true") {
+          sessionStorage.removeItem("fromBrandModal");
+          sessionStorage.removeItem("galleryModalScrollY");
+          sessionStorage.removeItem("galleryModalId");
+          setLastViewedPhoto(null);
+          // 브랜드 모달 다시 열기
+          setTimeout(() => {
+            setShowBrandModal(true);
+          }, 100);
+          return;
+        }
+        
         // 즉시 스크롤 복원 (requestAnimationFrame 사용하여 정확한 복원)
         const scrollY = parseInt(savedGalleryScrollY, 10);
         requestAnimationFrame(() => {
@@ -81,6 +151,83 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     prevPhotoIdRef.current = currentPhotoId;
   }, [photoId, lastViewedPhoto, setLastViewedPhoto, profileImageId]);
 
+  // 편집 모달 닫기 함수 (메뉴창 다시 열기)
+  const closeEditorialModal = () => {
+    setShowEditorialModal(false);
+    setShowCategoryMenu(true);
+  };
+
+  // 포스터 모달 닫기 함수 (메뉴창 다시 열기)
+  const closePosterModal = () => {
+    setShowPosterModal(false);
+    setShowCategoryMenu(true);
+  };
+
+  // 디지털 모달 닫기 함수 (메뉴창 다시 열기)
+  const closeDigitalModal = () => {
+    setShowDigitalModal(false);
+    setShowCategoryMenu(true);
+  };
+
+  // 브랜드 모달 닫기 함수 (메뉴창 다시 열기)
+  const closeBrandModal = () => {
+    setShowBrandModal(false);
+    setShowCategoryMenu(true);
+  };
+
+  // 전체 이미지 목록 (경기대전 포스터.png부터 시작, 프로필.png 제외)
+  const allImagesForModal = (() => {
+    // 프로필 이미지 제외
+    const filteredImages = images.filter((img) => img.src !== "/images/프로필.png");
+    const startImage = filteredImages.find((img) => img.src === "/images/경기대전 포스터.png");
+    if (!startImage) return filteredImages;
+    
+    const startIndex = filteredImages.findIndex((img) => img.id === startImage.id);
+    return [...filteredImages.slice(startIndex), ...filteredImages.slice(0, startIndex)];
+  })();
+
+  // 전체 모달 닫기 함수 (메뉴창 다시 열기)
+  const closeAllModal = () => {
+    setShowAllModal(false);
+    setShowCategoryMenu(true);
+  };
+
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showEditorialModal) {
+          closeEditorialModal();
+        } else if (showPosterModal) {
+          closePosterModal();
+        } else if (showDigitalModal) {
+          closeDigitalModal();
+        } else if (showBrandModal) {
+          closeBrandModal();
+        } else if (showAllModal) {
+          closeAllModal();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [showEditorialModal, showPosterModal, showDigitalModal, showBrandModal, showAllModal]);
+
+  // 전체 모달에서 화살표 키로 이미지 넘기기
+  useEffect(() => {
+    if (!showAllModal) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        setAllModalIndex((prev) => (prev > 0 ? prev - 1 : allImagesForModal.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setAllModalIndex((prev) => (prev < allImagesForModal.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAllModal, allImagesForModal.length]);
+
   // 카테고리 정의
   const CATEGORY_DEFS = [
     { id: "ALL" as const, label: "전체" },
@@ -102,14 +249,62 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     // "/images/패키지.png": "BRAND",
   };
 
-  // 현재 선택된 카테고리에 맞는 이미지 필터링
-  const filteredImages = images.filter((img) => {
-    if (selectedCategory === "ALL") return true;
-    const cat = imageCategoryMap[img.src];
-    // 아직 카테고리가 지정되지 않은 이미지는 일단 항상 노출
-    if (!cat) return true;
-    return cat === selectedCategory;
-  });
+  // 갤러리 그리드는 항상 전체 이미지 표시 (카테고리 선택과 무관)
+  const filteredImages = images;
+
+  // 편집 · 출판 디자인 이미지들
+  const editorialImageSrcs = [
+    "/images/동화_표지.jpg",
+    "/images/동화.jpg",
+    "/images/동화1.jpg",
+    "/images/책자.jpg",
+    "/images/북커버.png",
+  ];
+  const editorialImages = editorialImageSrcs
+    .map((src) => images.find((img) => img.src === src))
+    .filter((img): img is ImageProps => img !== undefined);
+
+  // 포스터 · 비주얼 그래픽 이미지들
+  const posterImageSrcs = [
+    "/images/경기대전 포스터.png",
+    "/images/공익 포스터.jpg",
+  ];
+  const posterImages = posterImageSrcs
+    .map((src) => images.find((img) => img.src === src))
+    .filter((img): img is ImageProps => img !== undefined);
+
+  // 디지털 콘텐츠 디자인 이미지들
+  const digitalImageSrcs = [
+    "/images/모바일 디자인.jpg",
+    "/images/파프리카 카드뉴스.jpg",
+  ];
+  const digitalImages = digitalImageSrcs
+    .map((src) => images.find((img) => img.src === src))
+    .filter((img): img is ImageProps => img !== undefined);
+
+  // 브랜드 · 패키지 디자인 이미지들
+  const brandImageSrcs = [
+    "/images/패키지.png",
+    "/images/패키지2.jpg",
+  ];
+  const brandImages = brandImageSrcs
+    .map((src) => images.find((img) => img.src === src))
+    .filter((img): img is ImageProps => img !== undefined);
+
+  // 전체 모달에서 화살표 키로 이미지 넘기기
+  useEffect(() => {
+    if (!showAllModal) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        setAllModalIndex((prev) => (prev > 0 ? prev - 1 : allImagesForModal.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setAllModalIndex((prev) => (prev < allImagesForModal.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAllModal, allImagesForModal.length]);
 
   // 1번 모션: 모바일 디자인.jpg
   const mobileDesignImage = images.find(
@@ -168,16 +363,17 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             setSelectedCategory(id);
             setShowCategoryMenu(false);
 
-            if (id === "ALL") {
-              const el = document.getElementById("gallery");
-              if (el) {
-                setTimeout(() => {
-                  el.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  });
-                }, 200);
-              }
+            if (id === "EDITORIAL") {
+              setShowEditorialModal(true);
+            } else if (id === "POSTER") {
+              setShowPosterModal(true);
+            } else if (id === "DIGITAL") {
+              setShowDigitalModal(true);
+            } else if (id === "BRAND") {
+              setShowBrandModal(true);
+            } else if (id === "ALL") {
+              setAllModalIndex(0);
+              setShowAllModal(true);
             }
           }}
         />
@@ -274,6 +470,834 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
       <footer className="p-6 text-center text-black/80 sm:p-12">
         © 2025 김민지. All rights reserved.
       </footer>
+
+      {/* 편집 · 출판 디자인 모달 */}
+      {showEditorialModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          onClick={(e) => {
+            // 배경 클릭 시에만 모달 닫기
+            if (e.target === e.currentTarget) {
+              closeEditorialModal();
+            }
+          }}
+        >
+          <div 
+            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 왼쪽: 카테고리 메뉴 */}
+            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
+              <div className="mb-6">
+                <span className="text-2xl sm:text-3xl font-semibold tracking-wide text-[#E45438]">
+                  Menu
+                </span>
+              </div>
+              <div className="space-y-3 sm:space-y-4">
+                {CATEGORY_DEFS.map((cat, idx) => {
+                  const isActive = cat.id === "EDITORIAL";
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => {
+                        if (cat.id === "EDITORIAL") return;
+                        setShowEditorialModal(false);
+                        if (cat.id === "POSTER") {
+                          setPosterModalIndex(0);
+                          setShowPosterModal(true);
+                        } else if (cat.id === "DIGITAL") {
+                          setDigitalModalIndex(0);
+                          setShowDigitalModal(true);
+                        } else if (cat.id === "BRAND") {
+                          setBrandModalIndex(0);
+                          setShowBrandModal(true);
+                        } else if (cat.id === "ALL") {
+                          setAllModalIndex(0);
+                          setShowAllModal(true);
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                        {String(idx + 1).padStart(2, "0")}.
+                      </span>
+                      <span className="text-sm sm:text-base font-medium">
+                        {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 오른쪽: 이미지 뷰어 */}
+            {editorialImages.length > 0 && (
+              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+                {/* 이전 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setEditorialModalIndex((prev) => (prev > 0 ? prev - 1 : editorialImages.length - 1))}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeftIcon className="h-6 w-6" />
+                </button>
+
+                {/* 현재 이미지 */}
+                {(() => {
+                  const currentImage = editorialImages[editorialModalIndex];
+                  const imageFileName = currentImage.src.split("/").pop() || "";
+                  const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
+                  const isScrollable = scrollableImages.includes(imageFileName);
+                  
+                  return (
+                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                      <Image
+                        src={currentImage.src}
+                        width={currentImage.width}
+                        height={currentImage.height}
+                        alt="Editorial design work"
+                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        priority
+                      />
+                    </div>
+                  );
+                })()}
+
+                {/* 다음 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setEditorialModalIndex((prev) => (prev < editorialImages.length - 1 ? prev + 1 : 0))}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Next image"
+                >
+                  <ChevronRightIcon className="h-6 w-6" />
+                </button>
+
+                {/* 하단 썸네일 네비게이션 */}
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                  <motion.div
+                    initial={false}
+                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                  >
+                    <AnimatePresence initial={false}>
+                      {editorialImages
+                        .filter((img, idx) => {
+                          return range(editorialModalIndex - 15, editorialModalIndex + 15).includes(idx);
+                        })
+                        .map(({ src, width, height, id }, idx) => {
+                          const indexInEditorial = editorialImages.findIndex((img) => img.id === id);
+                          return (
+                            <motion.button
+                              key={id}
+                              initial={{
+                                width: "0%",
+                                x: `${Math.max((editorialModalIndex - 1) * -100, 15 * -100)}%`,
+                              }}
+                              animate={{
+                                scale: indexInEditorial === editorialModalIndex ? 1.25 : 1,
+                                width: "100%",
+                                x: `${Math.max(editorialModalIndex * -100, 15 * -100)}%`,
+                              }}
+                              exit={{ width: "0%" }}
+                              onClick={() => setEditorialModalIndex(indexInEditorial)}
+                              className={`${
+                                indexInEditorial === editorialModalIndex
+                                  ? "z-20 rounded-md shadow shadow-black/50"
+                                  : "z-10"
+                              } ${
+                                indexInEditorial === 0 ? "rounded-l-md" : ""
+                              } ${
+                                indexInEditorial === editorialImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                            >
+                              <Image
+                                alt="thumbnail"
+                                width={180}
+                                height={120}
+                                className={`${
+                                  indexInEditorial === editorialModalIndex
+                                    ? "brightness-110 hover:brightness-110"
+                                    : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                                src={src}
+                              />
+                            </motion.button>
+                          );
+                        })}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 포스터 · 비주얼 그래픽 모달 */}
+      {showPosterModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          onClick={(e) => {
+            // 배경 클릭 시에만 모달 닫기
+            if (e.target === e.currentTarget) {
+              closePosterModal();
+            }
+          }}
+        >
+          <div 
+            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 왼쪽: 카테고리 메뉴 */}
+            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
+              <div className="mb-6">
+                <span className="text-2xl sm:text-3xl font-semibold tracking-wide text-[#E45438]">
+                  Menu
+                </span>
+              </div>
+              <div className="space-y-3 sm:space-y-4">
+                {CATEGORY_DEFS.map((cat, idx) => {
+                  const isActive = cat.id === "POSTER";
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => {
+                        if (cat.id === "POSTER") return;
+                        setShowPosterModal(false);
+                        if (cat.id === "EDITORIAL") {
+                          setShowEditorialModal(true);
+                        } else if (cat.id === "DIGITAL") {
+                          setShowDigitalModal(true);
+                        } else if (cat.id === "BRAND") {
+                          setShowBrandModal(true);
+                        } else if (cat.id === "ALL") {
+                          setAllModalIndex(0);
+                          setShowAllModal(true);
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                        {String(idx + 1).padStart(2, "0")}.
+                      </span>
+                      <span className="text-sm sm:text-base font-medium">
+                        {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 오른쪽: 이미지 뷰어 */}
+            {posterImages.length > 0 && (
+              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+                {/* 이전 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setPosterModalIndex((prev) => (prev > 0 ? prev - 1 : posterImages.length - 1))}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeftIcon className="h-6 w-6" />
+                </button>
+
+                {/* 현재 이미지 */}
+                {(() => {
+                  const currentImage = posterImages[posterModalIndex];
+                  const imageFileName = currentImage.src.split("/").pop() || "";
+                  const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
+                  const isScrollable = scrollableImages.includes(imageFileName);
+                  
+                  return (
+                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                      <Image
+                        src={currentImage.src}
+                        width={currentImage.width}
+                        height={currentImage.height}
+                        alt="Poster design work"
+                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        priority
+                      />
+                    </div>
+                  );
+                })()}
+
+                {/* 다음 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setPosterModalIndex((prev) => (prev < posterImages.length - 1 ? prev + 1 : 0))}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Next image"
+                >
+                  <ChevronRightIcon className="h-6 w-6" />
+                </button>
+
+                {/* 하단 썸네일 네비게이션 */}
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                  <motion.div
+                    initial={false}
+                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                  >
+                    <AnimatePresence initial={false}>
+                      {posterImages
+                        .filter((img, idx) => {
+                          return range(posterModalIndex - 15, posterModalIndex + 15).includes(idx);
+                        })
+                        .map(({ src, width, height, id }, idx) => {
+                          const indexInPoster = posterImages.findIndex((img) => img.id === id);
+                          return (
+                            <motion.button
+                              key={id}
+                              initial={{
+                                width: "0%",
+                                x: `${Math.max((posterModalIndex - 1) * -100, 15 * -100)}%`,
+                              }}
+                              animate={{
+                                scale: indexInPoster === posterModalIndex ? 1.25 : 1,
+                                width: "100%",
+                                x: `${Math.max(posterModalIndex * -100, 15 * -100)}%`,
+                              }}
+                              exit={{ width: "0%" }}
+                              onClick={() => setPosterModalIndex(indexInPoster)}
+                              className={`${
+                                indexInPoster === posterModalIndex
+                                  ? "z-20 rounded-md shadow shadow-black/50"
+                                  : "z-10"
+                              } ${
+                                indexInPoster === 0 ? "rounded-l-md" : ""
+                              } ${
+                                indexInPoster === posterImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                            >
+                              <Image
+                                alt="thumbnail"
+                                width={180}
+                                height={120}
+                                className={`${
+                                  indexInPoster === posterModalIndex
+                                    ? "brightness-110 hover:brightness-110"
+                                    : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                                src={src}
+                              />
+                            </motion.button>
+                          );
+                        })}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 디지털 콘텐츠 디자인 모달 */}
+      {showDigitalModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          onClick={(e) => {
+            // 배경 클릭 시에만 모달 닫기
+            if (e.target === e.currentTarget) {
+              closeDigitalModal();
+            }
+          }}
+        >
+          <div 
+            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 왼쪽: 카테고리 메뉴 */}
+            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
+              <div className="mb-6">
+                <span className="text-2xl sm:text-3xl font-semibold tracking-wide text-[#E45438]">
+                  Menu
+                </span>
+              </div>
+              <div className="space-y-3 sm:space-y-4">
+                {CATEGORY_DEFS.map((cat, idx) => {
+                  const isActive = cat.id === "DIGITAL";
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => {
+                        if (cat.id === "DIGITAL") return;
+                        setShowDigitalModal(false);
+                        if (cat.id === "EDITORIAL") {
+                          setEditorialModalIndex(0);
+                          setShowEditorialModal(true);
+                        } else if (cat.id === "POSTER") {
+                          setPosterModalIndex(0);
+                          setShowPosterModal(true);
+                        } else if (cat.id === "BRAND") {
+                          setBrandModalIndex(0);
+                          setShowBrandModal(true);
+                        } else if (cat.id === "ALL") {
+                          setAllModalIndex(0);
+                          setShowAllModal(true);
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                        {String(idx + 1).padStart(2, "0")}.
+                      </span>
+                      <span className="text-sm sm:text-base font-medium">
+                        {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 오른쪽: 이미지 뷰어 */}
+            {digitalImages.length > 0 && (
+              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+                {/* 이전 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setDigitalModalIndex((prev) => (prev > 0 ? prev - 1 : digitalImages.length - 1))}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeftIcon className="h-6 w-6" />
+                </button>
+
+                {/* 현재 이미지 */}
+                {(() => {
+                  const currentImage = digitalImages[digitalModalIndex];
+                  const imageFileName = currentImage.src.split("/").pop() || "";
+                  const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
+                  const isScrollable = scrollableImages.includes(imageFileName);
+                  
+                  return (
+                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                      <Image
+                        src={currentImage.src}
+                        width={currentImage.width}
+                        height={currentImage.height}
+                        alt="Digital design work"
+                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        priority
+                      />
+                    </div>
+                  );
+                })()}
+
+                {/* 다음 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setDigitalModalIndex((prev) => (prev < digitalImages.length - 1 ? prev + 1 : 0))}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Next image"
+                >
+                  <ChevronRightIcon className="h-6 w-6" />
+                </button>
+
+                {/* 하단 썸네일 네비게이션 */}
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                  <motion.div
+                    initial={false}
+                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                  >
+                    <AnimatePresence initial={false}>
+                      {digitalImages
+                        .filter((img, idx) => {
+                          return range(digitalModalIndex - 15, digitalModalIndex + 15).includes(idx);
+                        })
+                        .map(({ src, width, height, id }, idx) => {
+                          const indexInDigital = digitalImages.findIndex((img) => img.id === id);
+                          return (
+                            <motion.button
+                              key={id}
+                              initial={{
+                                width: "0%",
+                                x: `${Math.max((digitalModalIndex - 1) * -100, 15 * -100)}%`,
+                              }}
+                              animate={{
+                                scale: indexInDigital === digitalModalIndex ? 1.25 : 1,
+                                width: "100%",
+                                x: `${Math.max(digitalModalIndex * -100, 15 * -100)}%`,
+                              }}
+                              exit={{ width: "0%" }}
+                              onClick={() => setDigitalModalIndex(indexInDigital)}
+                              className={`${
+                                indexInDigital === digitalModalIndex
+                                  ? "z-20 rounded-md shadow shadow-black/50"
+                                  : "z-10"
+                              } ${
+                                indexInDigital === 0 ? "rounded-l-md" : ""
+                              } ${
+                                indexInDigital === digitalImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                            >
+                              <Image
+                                alt="thumbnail"
+                                width={180}
+                                height={120}
+                                className={`${
+                                  indexInDigital === digitalModalIndex
+                                    ? "brightness-110 hover:brightness-110"
+                                    : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                                src={src}
+                              />
+                            </motion.button>
+                          );
+                        })}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 브랜드 · 패키지 디자인 모달 */}
+      {showBrandModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          onClick={(e) => {
+            // 배경 클릭 시에만 모달 닫기
+            if (e.target === e.currentTarget) {
+              closeBrandModal();
+            }
+          }}
+        >
+          <div 
+            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 왼쪽: 카테고리 메뉴 */}
+            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
+              <div className="mb-6">
+                <span className="text-2xl sm:text-3xl font-bold tracking-wide text-[#E45438]">
+                  Menu
+                </span>
+              </div>
+              <div className="space-y-3 sm:space-y-4">
+                {CATEGORY_DEFS.map((cat, idx) => {
+                  const isActive = cat.id === "BRAND";
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => {
+                        if (cat.id === "BRAND") return;
+                        setShowBrandModal(false);
+                        if (cat.id === "EDITORIAL") {
+                          setShowEditorialModal(true);
+                        } else if (cat.id === "POSTER") {
+                          setShowPosterModal(true);
+                        } else if (cat.id === "DIGITAL") {
+                          setShowDigitalModal(true);
+                        } else if (cat.id === "ALL") {
+                          setAllModalIndex(0);
+                          setShowAllModal(true);
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                        {String(idx + 1).padStart(2, "0")}.
+                      </span>
+                      <span className="text-sm sm:text-base font-medium">
+                        {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 오른쪽: 이미지 뷰어 */}
+            {brandImages.length > 0 && (
+              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+                {/* 이전 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setBrandModalIndex((prev) => (prev > 0 ? prev - 1 : brandImages.length - 1))}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeftIcon className="h-6 w-6" />
+                </button>
+
+                {/* 현재 이미지 */}
+                {(() => {
+                  const currentImage = brandImages[brandModalIndex];
+                  const imageFileName = currentImage.src.split("/").pop() || "";
+                  const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
+                  const isScrollable = scrollableImages.includes(imageFileName);
+                  
+                  return (
+                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                      <Image
+                        src={currentImage.src}
+                        width={currentImage.width}
+                        height={currentImage.height}
+                        alt="Brand design work"
+                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        priority
+                      />
+                    </div>
+                  );
+                })()}
+
+                {/* 다음 이미지 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setBrandModalIndex((prev) => (prev < brandImages.length - 1 ? prev + 1 : 0))}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                  aria-label="Next image"
+                >
+                  <ChevronRightIcon className="h-6 w-6" />
+                </button>
+
+                {/* 하단 썸네일 네비게이션 */}
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                  <motion.div
+                    initial={false}
+                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                  >
+                    <AnimatePresence initial={false}>
+                      {brandImages
+                        .filter((img, idx) => {
+                          return range(brandModalIndex - 15, brandModalIndex + 15).includes(idx);
+                        })
+                        .map(({ src, width, height, id }, idx) => {
+                          const indexInBrand = brandImages.findIndex((img) => img.id === id);
+                          return (
+                            <motion.button
+                              key={id}
+                              initial={{
+                                width: "0%",
+                                x: `${Math.max((brandModalIndex - 1) * -100, 15 * -100)}%`,
+                              }}
+                              animate={{
+                                scale: indexInBrand === brandModalIndex ? 1.25 : 1,
+                                width: "100%",
+                                x: `${Math.max(brandModalIndex * -100, 15 * -100)}%`,
+                              }}
+                              exit={{ width: "0%" }}
+                              onClick={() => setBrandModalIndex(indexInBrand)}
+                              className={`${
+                                indexInBrand === brandModalIndex
+                                  ? "z-20 rounded-md shadow shadow-black/50"
+                                  : "z-10"
+                              } ${
+                                indexInBrand === 0 ? "rounded-l-md" : ""
+                              } ${
+                                indexInBrand === brandImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                            >
+                              <Image
+                                alt="thumbnail"
+                                width={180}
+                                height={120}
+                                className={`${
+                                  indexInBrand === brandModalIndex
+                                    ? "brightness-110 hover:brightness-110"
+                                    : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                                src={src}
+                              />
+                            </motion.button>
+                          );
+                        })}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 전체 모달 */}
+      {showAllModal && allImagesForModal.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          onClick={(e) => {
+            // 배경 클릭 시에만 모달 닫기
+            if (e.target === e.currentTarget) {
+              closeAllModal();
+            }
+          }}
+        >
+          <div 
+            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 왼쪽: 카테고리 메뉴 */}
+            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
+              <div className="mb-6">
+                <span className="text-2xl sm:text-3xl font-bold tracking-wide text-[#E45438]">
+                  Menu
+                </span>
+              </div>
+              <div className="space-y-3 sm:space-y-4">
+                {CATEGORY_DEFS.map((cat, idx) => {
+                  const isActive = cat.id === "ALL";
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => {
+                        if (cat.id === "ALL") return;
+                        setShowAllModal(false);
+                        if (cat.id === "EDITORIAL") {
+                          setShowEditorialModal(true);
+                        } else if (cat.id === "POSTER") {
+                          setShowPosterModal(true);
+                        } else if (cat.id === "DIGITAL") {
+                          setShowDigitalModal(true);
+                        } else if (cat.id === "BRAND") {
+                          setShowBrandModal(true);
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                        {String(idx + 1).padStart(2, "0")}.
+                      </span>
+                      <span className="text-sm sm:text-base font-medium">
+                        {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 오른쪽: 이미지 뷰어 */}
+            <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+              {/* 이전 이미지 버튼 */}
+              <button
+                type="button"
+                onClick={() => setAllModalIndex((prev) => (prev > 0 ? prev - 1 : allImagesForModal.length - 1))}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                aria-label="Previous image"
+              >
+                <ChevronLeftIcon className="h-6 w-6" />
+              </button>
+
+              {/* 현재 이미지 */}
+              {(() => {
+                const currentImage = allImagesForModal[allModalIndex];
+                const imageFileName = currentImage.src.split("/").pop() || "";
+                const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
+                const isScrollable = scrollableImages.includes(imageFileName);
+                
+                return (
+                  <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                    <Image
+                      src={currentImage.src}
+                      width={currentImage.width}
+                      height={currentImage.height}
+                      alt="All portfolio work"
+                      className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                      priority
+                    />
+                  </div>
+                );
+              })()}
+
+              {/* 다음 이미지 버튼 */}
+              <button
+                type="button"
+                onClick={() => setAllModalIndex((prev) => (prev < allImagesForModal.length - 1 ? prev + 1 : 0))}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
+                aria-label="Next image"
+              >
+                <ChevronRightIcon className="h-6 w-6" />
+              </button>
+
+              {/* 하단 썸네일 네비게이션 */}
+              <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                <motion.div
+                  initial={false}
+                  className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                >
+                  <AnimatePresence initial={false}>
+                    {allImagesForModal
+                      .filter((img, idx) => {
+                        return range(allModalIndex - 15, allModalIndex + 15).includes(idx);
+                      })
+                      .map(({ src, width, height, id }, idx) => {
+                        const indexInAll = allImagesForModal.findIndex((img) => img.id === id);
+                        return (
+                          <motion.button
+                            key={id}
+                            initial={{
+                              width: "0%",
+                              x: `${Math.max((allModalIndex - 1) * -100, 15 * -100)}%`,
+                            }}
+                            animate={{
+                              scale: indexInAll === allModalIndex ? 1.25 : 1,
+                              width: "100%",
+                              x: `${Math.max(allModalIndex * -100, 15 * -100)}%`,
+                            }}
+                            exit={{ width: "0%" }}
+                            onClick={() => setAllModalIndex(indexInAll)}
+                            className={`${
+                              indexInAll === allModalIndex
+                                ? "z-20 rounded-md shadow shadow-black/50"
+                                : "z-10"
+                            } ${
+                              indexInAll === 0 ? "rounded-l-md" : ""
+                            } ${
+                              indexInAll === allImagesForModal.length - 1 ? "rounded-r-md" : ""
+                            } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                          >
+                            <Image
+                              alt="thumbnail"
+                              width={180}
+                              height={120}
+                              className={`${
+                                indexInAll === allModalIndex
+                                  ? "brightness-110 hover:brightness-110"
+                                  : "brightness-50 contrast-125 hover:brightness-75"
+                              } h-full transform object-cover transition`}
+                              src={src}
+                            />
+                          </motion.button>
+                        );
+                      })}
+                  </AnimatePresence>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

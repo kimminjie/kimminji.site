@@ -15,6 +15,10 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
   const [flipProgress, setFlipProgress] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // 블러 없는(미래 페이지) 스택을 오른쪽으로 살짝 이동
+  const FUTURE_STACK_OFFSET_X = 96;
+  const PAST_STACK_X = 376;
+
   useEffect(() => {
     if (images.length === 0 || images.length === 1) return;
 
@@ -100,7 +104,10 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
             // 넘어가는 중: 왼쪽 → 오른쪽으로 회전하면서 블러 적용 및 바로 작아짐, 바로 블러 위치로 이동
             const rotateY = -flipProgress * 180; // 0도에서 -180도로 회전
             const translateZ = Math.sin(flipProgress * Math.PI) * 20; // 3D 깊이 효과
-            const translateX = flipProgress * 376; // 10cm 오른쪽으로 이동
+            // 시작 위치(미래 스택) -> 종료 위치(블러 스택)로 이동
+            const translateX =
+              FUTURE_STACK_OFFSET_X +
+              (PAST_STACK_X - FUTURE_STACK_OFFSET_X) * flipProgress;
             const blurAmount = flipProgress * 3; // 0에서 3px로 증가
             const scale = 1 - flipProgress * 0.05; // 1에서 0.95로 바로 작아짐
 
@@ -138,7 +145,7 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
                 style={{
                   transformStyle: "preserve-3d",
                   transformOrigin: "left center",
-                  transform: "translateX(0) translateZ(0) rotateY(0deg)",
+                  transform: `translateX(${FUTURE_STACK_OFFSET_X}px) translateZ(0) rotateY(0deg)`,
                   zIndex: 30,
                   transition: "transform 600ms ease-out",
                 }}
@@ -187,6 +194,7 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
         // 미래 페이지: 왼쪽에 쌓여있음 (선명하게, 고정 위치)
         if (isFuture) {
           const translateZ = 0; // 고정 위치
+          const translateX = FUTURE_STACK_OFFSET_X;
 
           return (
             <div
@@ -195,7 +203,7 @@ export default function AutoBookFlip({ images, onComplete }: AutoBookFlipProps) 
               style={{
                 transformStyle: "preserve-3d",
                 transformOrigin: "left center",
-                transform: `translateX(0) translateZ(${translateZ}px) rotateY(0deg)`,
+                transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(0deg)`,
                 filter: "none",
                 isolation: "isolate",
                 zIndex: 25 - (index - currentIndex - 1),
