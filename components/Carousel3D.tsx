@@ -193,7 +193,7 @@ export default function Carousel3D({
 
   return (
     <div
-      className="relative flex flex-col lg:flex-row min-h-[88vh] items-center justify-center lg:justify-end rounded-b-2xl py-10 px-4 sm:px-6 md:px-10 overflow-x-hidden overflow-y-hidden gap-6"
+      className="relative flex flex-col lg:flex-row min-h-[88vh] items-center justify-center lg:justify-end rounded-b-2xl py-6 sm:py-8 md:py-10 px-3 sm:px-4 md:px-6 lg:px-10 overflow-x-hidden overflow-y-auto lg:overflow-y-hidden gap-4 sm:gap-6"
       style={{ backgroundColor: '#F7F5F2' }}
     >
       {/* 상단 회색 스트립 */}
@@ -201,24 +201,24 @@ export default function Carousel3D({
 
       {/* 헤더 텍스트 */}
       <div
-        className="absolute top-6 lg:top-8 left-6 lg:left-12 z-20 flex flex-col"
+        className="absolute top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-20 flex flex-col max-w-[calc(100vw-2rem)]"
         style={{ fontFamily: uiSansFamily }}
       >
-        <div className="ml-1 lg:ml-2 text-xl sm:text-2xl md:text-3xl text-[#E45438] font-sans font-bold tracking-wide">
+        <div className="ml-1 lg:ml-2 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#E45438] font-sans font-bold tracking-wide break-words">
           KIM MINJI
         </div>
-        <div className="text-5xl sm:text-6xl lg:text-8xl font-serif text-[#E45438] font-bold mt-6 lg:mt-8 leading-none">
+        <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-serif text-[#E45438] font-bold mt-4 sm:mt-6 lg:mt-8 leading-none break-words">
           PROJECTS
         </div>
       </div>
 
       {/* 좌측 하단: 연락처 (아이콘 + 텍스트) */}
       <div
-        className="absolute left-4 sm:left-6 lg:left-12 bottom-24 sm:bottom-28 lg:bottom-32 z-20 font-sans w-[min(92vw,900px)]"
+        className="absolute left-2 sm:left-4 md:left-6 lg:left-12 bottom-16 sm:bottom-24 md:bottom-28 lg:bottom-32 z-20 font-sans w-[calc(100vw-1rem)] sm:w-[min(92vw,900px)] max-w-[calc(100vw-2rem)]"
         style={{ fontFamily: uiSansFamily }}
       >
         {/* 2행 x 2열로 고정해서 행 정렬 맞추기 */}
-        <div className="grid grid-cols-1 sm:grid-cols-[auto_auto] sm:grid-rows-2 gap-x-10 gap-y-2 items-start sm:items-center text-[#E45438]">
+        <div className="grid grid-cols-1 sm:grid-cols-[auto_auto] sm:grid-rows-2 gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-2 items-start sm:items-center text-[#E45438]">
           {/* phone */}
           <div className="flex items-center gap-3 sm:col-start-1 sm:row-start-1">
             <span
@@ -238,9 +238,13 @@ export default function Carousel3D({
                 />
               </svg>
             </span>
-            <span className="text-sm sm:text-base md:text-xl leading-none tracking-wide cursor-default whitespace-nowrap">
+            <a
+              href="tel:010-2840-5951"
+              className="text-sm sm:text-base md:text-xl leading-none tracking-wide cursor-default whitespace-nowrap touch-manipulation"
+              aria-label="전화하기: 010-2840-5951"
+            >
               010 - 2840 - 5951
-            </span>
+            </a>
           </div>
 
           {/* email */}
@@ -267,9 +271,13 @@ export default function Carousel3D({
                 />
               </svg>
             </span>
-            <span className="text-sm sm:text-base md:text-xl leading-none tracking-wide cursor-default break-all sm:break-normal">
+            <a
+              href="mailto:nnind0112@gmail.com"
+              className="text-sm sm:text-base md:text-xl leading-none tracking-wide cursor-default break-all sm:break-normal touch-manipulation"
+              aria-label="이메일 보내기: nnind0112@gmail.com"
+            >
               nnind0112@gmail.com
-            </span>
+            </a>
           </div>
 
           {/* name */}
@@ -385,6 +393,7 @@ export default function Carousel3D({
         className={[
           "absolute top-6 lg:top-8 left-1/2 -translate-x-1/2 z-20",
           headerTextButtonBase,
+          "touch-manipulation min-w-[44px] min-h-[44px]",
         ].join(" ")}
         style={{ fontFamily: uiSansFamily }}
         onClick={() => {
@@ -397,7 +406,7 @@ export default function Carousel3D({
       </button>
 
       {/* 오른쪽: MENU 버튼 */}
-      <div className="absolute top-6 lg:top-8 right-6 lg:right-12 z-30 flex flex-col items-end space-y-2">
+      <div className="absolute top-6 lg:top-8 right-4 sm:right-6 lg:right-12 z-30 flex flex-col items-end space-y-2">
         <button
           type="button"
           aria-label="Open menu"
@@ -405,7 +414,7 @@ export default function Carousel3D({
           disabled={!onMenuClick}
           className={[
             headerTextButtonBase,
-            "p-2 -m-2",
+            "p-2 -m-2 touch-manipulation min-w-[44px] min-h-[44px]",
           ].join(" ")}
           style={{ fontFamily: uiSansFamily }}
           onClick={onMenuClick}
@@ -423,51 +432,53 @@ export default function Carousel3D({
 
       {/* 전체 화면 카테고리 메뉴 오버레이 */}
       {showCategoryMenu && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-md transition-opacity">
-          <div className="w-full max-w-5xl px-6 sm:px-10 flex items-start justify-start relative">
+        <div className="fixed inset-0 z-40 flex items-start justify-start sm:items-center sm:justify-center bg-black/70 sm:bg-black/40 backdrop-blur-md transition-opacity overflow-y-auto">
+          <div className="w-full max-w-5xl px-5 sm:px-6 md:px-10 py-8 sm:py-6 md:py-0 flex flex-col sm:flex-row items-start justify-start relative min-h-full sm:min-h-0">
             {/* 닫기 버튼 */}
             <button
               type="button"
-              className="absolute top-0 right-0 text-white text-2xl sm:text-3xl hover:opacity-80"
+              className="fixed sm:absolute top-4 right-4 sm:top-2 sm:right-2 md:top-0 md:right-0 text-white text-4xl sm:text-3xl md:text-4xl hover:opacity-80 active:opacity-60 transition-opacity touch-manipulation min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center z-50 bg-black/30 sm:bg-transparent rounded-full sm:rounded-none"
               onClick={onMenuClick}
+              aria-label="메뉴 닫기"
             >
               ×
             </button>
 
             {/* 왼쪽 큰 MENU 텍스트 */}
-            <div className="flex-none w-32 sm:w-40 mr-12 sm:mr-20">
-              <span className="text-[#E45438] font-sans text-3xl sm:text-4xl font-semibold">
+            <div className="flex-none w-full sm:w-32 md:w-40 mb-10 sm:mb-0 sm:mr-12 md:mr-16 lg:mr-28 mt-2 sm:mt-0">
+              <h2 className="text-[#E45438] font-sans text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold">
                 Menu
-              </span>
+              </h2>
             </div>
 
             {/* 오른쪽 카테고리 리스트 */}
-            <div className="flex-1 space-y-4 sm:space-y-6 text-white">
+            <nav className="flex-1 w-full space-y-6 sm:space-y-4 md:space-y-6 lg:space-y-8 text-white pt-2 sm:pt-0" aria-label="카테고리 메뉴">
               {CATEGORY_DEFS.map((cat, idx) => {
                 const isActive = selectedCategory === cat.id;
                 return (
                   <button
                     key={cat.id}
                     type="button"
-                    className={`w-full flex items-center justify-between border-b border-white/25 pb-3 sm:pb-4 last:border-b-0 transition-colors ${isActive
-                      ? "text-white"
-                      : "text-white/80 hover:text-white"
+                    className={`w-full flex items-center justify-between border-b border-white/25 pb-5 sm:pb-3 md:pb-4 last:border-b-0 transition-colors touch-manipulation min-h-[60px] sm:min-h-[48px] md:min-h-[44px] active:bg-white/10 ${isActive
+                      ? "text-white font-bold"
+                      : "text-white/90 hover:text-white active:opacity-80"
                       }`}
                     onClick={() => onCategorySelect && onCategorySelect(cat.id)}
+                    aria-label={`${cat.label} 카테고리 선택`}
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-white/60">
+                    <div className="flex items-center gap-3 sm:gap-2 md:gap-4 flex-1 min-w-0">
+                      <span className="text-xs sm:text-[10px] md:text-xs tracking-[0.25em] uppercase text-white/60 flex-shrink-0 font-medium">
                         {String(idx + 1).padStart(2, "0")}.
                       </span>
-                      <span className="font-sans text-2xl sm:text-3xl font-semibold">
+                      <span className="font-sans text-xl sm:text-lg md:text-2xl lg:text-3xl font-semibold break-words sm:break-normal sm:truncate leading-tight">
                         {cat.label}
                       </span>
                     </div>
-                    <span className="text-sm sm:text-base text-white/70">↗</span>
+                    <span className="text-lg sm:text-sm md:text-base text-white/70 flex-shrink-0 ml-3 sm:ml-2" aria-hidden="true">↗</span>
                   </button>
                 );
               })}
-            </div>
+            </nav>
           </div>
         </div>
       )}
@@ -475,8 +486,8 @@ export default function Carousel3D({
       {/* 모션 영역 */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl mt-20 lg:mt-24 -translate-y-6 lg:-translate-y-8"
-        style={{ height: "88vh" }}
+        className="relative w-full max-w-4xl lg:max-w-3xl mx-auto lg:mr-16 z-10 rounded-b-2xl mt-16 sm:mt-20 lg:mt-24 -translate-y-4 sm:-translate-y-6 lg:-translate-y-8"
+        style={{ height: "88vh", minHeight: "400px" }}
       >
         {phase === "first" && (
           <div
@@ -501,10 +512,11 @@ export default function Carousel3D({
                 src={firstImage.src}
                 width={firstImage.width}
                 height={firstImage.height}
-                alt="Motion image"
+                alt="김민지 포트폴리오 작업물 - 모바일 디자인"
                 className="w-full h-auto object-contain"
                 priority
                 onLoad={handleImageLoad}
+                sizes="100vw"
               />
             </div>
           </div>
@@ -568,9 +580,10 @@ export default function Carousel3D({
                     src={img.src}
                     width={img.width}
                     height={img.height}
-                    alt="Bodoni editorial"
+                    alt="김민지 포트폴리오 작업물"
                     className="h-auto w-auto max-h-[130vh] rounded-lg shadow-2xl object-contain"
                     priority={index === currentIndex}
+                    sizes="(max-width: 1024px) 100vw, 80vw"
                   />
                 </div>
               );

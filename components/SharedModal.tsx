@@ -291,7 +291,7 @@ export default function SharedModal({
             >
               <AnimatePresence initial={false}>
                 {filteredImages
-                  ?.filter((img) => img.src !== "/images/프로필.png")
+                  ?.filter((img) => img.src !== "/프로필.png")
                   .map(({ src, width, height, id }) => (
                     <motion.button
                       initial={{

@@ -32,6 +32,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const [showDigitalModal, setShowDigitalModal] = useState(false);
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
+  // 모바일에서 카테고리 사이드바 토글 상태
+  const [showEditorialSidebar, setShowEditorialSidebar] = useState(false);
+  const [showPosterSidebar, setShowPosterSidebar] = useState(false);
+  const [showDigitalSidebar, setShowDigitalSidebar] = useState(false);
+  const [showBrandSidebar, setShowBrandSidebar] = useState(false);
+  const [showAllSidebar, setShowAllSidebar] = useState(false);
   const [allModalIndex, setAllModalIndex] = useState(0);
   const [editorialModalIndex, setEditorialModalIndex] = useState(0);
   const [posterModalIndex, setPosterModalIndex] = useState(0);
@@ -40,22 +46,22 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
   // 프로필 이미지 찾기
   const profileImage = images.find(
-    (img) => img.src === "/images/프로필.png"
+    (img) => img.src === "/프로필.png"
   );
   const profileImageId = profileImage?.id;
 
   useEffect(() => {
     const currentPhotoId = photoId;
     const prevPhotoId = prevPhotoIdRef.current;
-    
+
     // 모달이 닫혔을 때 저장된 스크롤 위치로 복원
     if (prevPhotoId && !currentPhotoId && typeof window !== "undefined") {
       // 프로필 모달인 경우
       const savedProfileScrollY = sessionStorage.getItem("profileModalScrollY");
       const savedProfileId = sessionStorage.getItem("profileModalId");
-      if (savedProfileScrollY !== null && savedProfileId && profileImageId && 
-          prevPhotoId === profileImageId.toString() && 
-          savedProfileId === profileImageId.toString()) {
+      if (savedProfileScrollY !== null && savedProfileId && profileImageId &&
+        prevPhotoId === profileImageId.toString() &&
+        savedProfileId === profileImageId.toString()) {
         // 즉시 스크롤 복원
         const scrollY = parseInt(savedProfileScrollY, 10);
         window.scrollTo({ top: scrollY, behavior: "auto" });
@@ -63,7 +69,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
         sessionStorage.removeItem("profileModalId");
         return; // 프로필 모달 복원 후 종료
       }
-      
+
       // 일반 갤러리 모달인 경우
       const savedGalleryScrollY = sessionStorage.getItem("galleryModalScrollY");
       const savedGalleryId = sessionStorage.getItem("galleryModalId");
@@ -71,9 +77,9 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
       const fromPosterModal = sessionStorage.getItem("fromPosterModal");
       const fromDigitalModal = sessionStorage.getItem("fromDigitalModal");
       const fromBrandModal = sessionStorage.getItem("fromBrandModal");
-      
-      if (savedGalleryScrollY !== null && savedGalleryId && 
-          prevPhotoId === savedGalleryId) {
+
+      if (savedGalleryScrollY !== null && savedGalleryId &&
+        prevPhotoId === savedGalleryId) {
         // 편집 모달에서 왔다면 편집 모달 다시 열기
         if (fromEditorialModal === "true") {
           sessionStorage.removeItem("fromEditorialModal");
@@ -82,11 +88,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
           setLastViewedPhoto(null);
           // 편집 모달 다시 열기
           setTimeout(() => {
+            setShowEditorialSidebar(false);
             setShowEditorialModal(true);
           }, 100);
           return;
         }
-        
+
         // 포스터 모달에서 왔다면 포스터 모달 다시 열기
         if (fromPosterModal === "true") {
           sessionStorage.removeItem("fromPosterModal");
@@ -95,11 +102,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
           setLastViewedPhoto(null);
           // 포스터 모달 다시 열기
           setTimeout(() => {
+            setShowPosterSidebar(false);
             setShowPosterModal(true);
           }, 100);
           return;
         }
-        
+
         // 디지털 모달에서 왔다면 디지털 모달 다시 열기
         if (fromDigitalModal === "true") {
           sessionStorage.removeItem("fromDigitalModal");
@@ -108,11 +116,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
           setLastViewedPhoto(null);
           // 디지털 모달 다시 열기
           setTimeout(() => {
+            setShowDigitalSidebar(false);
             setShowDigitalModal(true);
           }, 100);
           return;
         }
-        
+
         // 브랜드 모달에서 왔다면 브랜드 모달 다시 열기
         if (fromBrandModal === "true") {
           sessionStorage.removeItem("fromBrandModal");
@@ -121,11 +130,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
           setLastViewedPhoto(null);
           // 브랜드 모달 다시 열기
           setTimeout(() => {
+            setShowBrandSidebar(false);
             setShowBrandModal(true);
           }, 100);
           return;
         }
-        
+
         // 즉시 스크롤 복원 (requestAnimationFrame 사용하여 정확한 복원)
         const scrollY = parseInt(savedGalleryScrollY, 10);
         requestAnimationFrame(() => {
@@ -141,12 +151,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
         return; // 갤러리 모달 복원 후 종료
       }
     }
-    
+
     // 마지막으로 본 사진 위치로 스크롤은 하지 않음 (저장된 스크롤 위치로 복원하므로)
     if (lastViewedPhoto && !currentPhotoId) {
       setLastViewedPhoto(null);
     }
-    
+
     // 이전 photoId 업데이트
     prevPhotoIdRef.current = currentPhotoId;
   }, [photoId, lastViewedPhoto, setLastViewedPhoto, profileImageId]);
@@ -155,33 +165,37 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const closeEditorialModal = () => {
     setShowEditorialModal(false);
     setShowCategoryMenu(true);
+    setShowEditorialSidebar(false);
   };
 
   // 포스터 모달 닫기 함수 (메뉴창 다시 열기)
   const closePosterModal = () => {
     setShowPosterModal(false);
     setShowCategoryMenu(true);
+    setShowPosterSidebar(false);
   };
 
   // 디지털 모달 닫기 함수 (메뉴창 다시 열기)
   const closeDigitalModal = () => {
     setShowDigitalModal(false);
     setShowCategoryMenu(true);
+    setShowDigitalSidebar(false);
   };
 
   // 브랜드 모달 닫기 함수 (메뉴창 다시 열기)
   const closeBrandModal = () => {
     setShowBrandModal(false);
     setShowCategoryMenu(true);
+    setShowBrandSidebar(false);
   };
 
   // 전체 이미지 목록 (경기대전 포스터.png부터 시작, 프로필.png 제외)
   const allImagesForModal = (() => {
     // 프로필 이미지 제외
-    const filteredImages = images.filter((img) => img.src !== "/images/프로필.png");
+    const filteredImages = images.filter((img) => img.src !== "/프로필.png");
     const startImage = filteredImages.find((img) => img.src === "/images/경기대전 포스터.png");
     if (!startImage) return filteredImages;
-    
+
     const startIndex = filteredImages.findIndex((img) => img.id === startImage.id);
     return [...filteredImages.slice(startIndex), ...filteredImages.slice(0, startIndex)];
   })();
@@ -190,6 +204,18 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   const closeAllModal = () => {
     setShowAllModal(false);
     setShowCategoryMenu(true);
+    setShowAllSidebar(false);
+  };
+
+  // 홈으로 가기 함수 (모든 모달 닫고 캐러셀 화면으로)
+  const goToHome = () => {
+    setShowEditorialModal(false);
+    setShowPosterModal(false);
+    setShowDigitalModal(false);
+    setShowBrandModal(false);
+    setShowAllModal(false);
+    setShowCategoryMenu(false);
+    setShowCarousel(true);
   };
 
   // ESC 키로 모달 닫기
@@ -216,7 +242,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   // 전체 모달에서 화살표 키로 이미지 넘기기
   useEffect(() => {
     if (!showAllModal) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
         setAllModalIndex((prev) => (prev > 0 ? prev - 1 : allImagesForModal.length - 1));
@@ -294,7 +320,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
   // 전체 모달에서 화살표 키로 이미지 넘기기
   useEffect(() => {
     if (!showAllModal) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
         setAllModalIndex((prev) => (prev > 0 ? prev - 1 : allImagesForModal.length - 1));
@@ -352,8 +378,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
     <>
       {/* 모션 캐러셀 - 최상단 (모달이 열려도 계속 렌더링하여 모션 유지) */}
       <div className={`w-full ${photoId ? 'pointer-events-none' : ''}`} style={{ visibility: photoId ? 'hidden' : 'visible' }}>
-        <Carousel3D 
-          imageData={carouselImageData} 
+        <Carousel3D
+          imageData={carouselImageData}
           thirdImages={storyImages}
           profileImageId={profileImage?.id}
           onMenuClick={() => setShowCategoryMenu((v) => !v)}
@@ -364,14 +390,19 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             setShowCategoryMenu(false);
 
             if (id === "EDITORIAL") {
+              setShowEditorialSidebar(false);
               setShowEditorialModal(true);
             } else if (id === "POSTER") {
+              setShowPosterSidebar(false);
               setShowPosterModal(true);
             } else if (id === "DIGITAL") {
+              setShowDigitalSidebar(false);
               setShowDigitalModal(true);
             } else if (id === "BRAND") {
+              setShowBrandSidebar(false);
               setShowBrandModal(true);
             } else if (id === "ALL") {
+              setShowAllSidebar(false);
               setAllModalIndex(0);
               setShowAllModal(true);
             }
@@ -418,22 +449,22 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                       }
 
                       const imageEl = (
-                    <Image
-                      alt="Portfolio work"
-                      className={`transform rounded-lg brightness-90 transition will-change-auto ${
-                        isNonClickable ? "" : "group-hover:brightness-110"
-                      }`}
-                      style={{ transform: "translate3d(0, 0, 0)" }}
-                      placeholder={blurDataUrl ? "blur" : "empty"}
-                      blurDataURL={blurDataUrl}
-                      src={src}
-                      width={width}
-                      height={height}
-                      sizes="(max-width: 640px) 100vw,
+                        <Image
+                          alt={`김민지 포트폴리오 작업물 ${src.split('/').pop()?.replace(/\.[^/.]+$/, '') || ''}`}
+                          className={`transform rounded-lg brightness-90 transition will-change-auto ${isNonClickable ? "" : "group-hover:brightness-110"
+                            }`}
+                          style={{ transform: "translate3d(0, 0, 0)" }}
+                          placeholder={blurDataUrl ? "blur" : "empty"}
+                          blurDataURL={blurDataUrl}
+                          src={src}
+                          width={width}
+                          height={height}
+                          sizes="(max-width: 640px) 100vw,
                           (max-width: 1280px) 50vw,
                           (max-width: 1536px) 33vw,
                           25vw"
-                    />
+                          loading="lazy"
+                        />
                       );
 
                       return (
@@ -473,8 +504,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
       {/* 편집 · 출판 디자인 모달 */}
       {showEditorialModal && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/90 sm:bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={(e) => {
             // 배경 클릭 시에만 모달 닫기
             if (e.target === e.currentTarget) {
@@ -482,70 +513,105 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             }
           }}
         >
-          <div 
-            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+          <div
+            className="relative w-full h-full max-w-[90rem] min-h-full sm:min-h-0 sm:max-h-[90vh] p-0 sm:p-4 md:p-6 lg:p-8 xl:p-12 flex flex-col sm:flex-row gap-0 sm:gap-4 md:gap-6 lg:gap-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 왼쪽: 카테고리 메뉴 */}
-            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
-              <div className="mb-6">
-                <span className="text-2xl sm:text-3xl font-semibold tracking-wide text-[#E45438]">
+            {/* 모바일 햄버거 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:hidden top-4 left-4 z-50 text-white text-2xl hover:opacity-70 active:opacity-50 transition-opacity touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center bg-black/40 rounded-full"
+              onClick={() => setShowEditorialSidebar(!showEditorialSidebar)}
+              aria-label="카테고리 메뉴 토글"
+            >
+              {showEditorialSidebar ? "×" : "≡"}
+            </button>
+
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:absolute top-4 right-4 sm:top-4 sm:right-4 md:top-6 md:right-6 z-50 text-white text-4xl sm:text-3xl md:text-4xl hover:opacity-70 active:opacity-50 transition-opacity font-light leading-none touch-manipulation min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center bg-black/40 sm:bg-transparent rounded-full sm:rounded-none"
+              onClick={goToHome}
+              aria-label="모달 닫기"
+            >
+              ×
+            </button>
+
+            {/* 왼쪽: 카테고리 메뉴 (모바일에서는 햄버거로 토글, 태블릿 이상에서는 항상 표시) */}
+            <aside
+              className={`fixed sm:relative top-0 left-0 h-full sm:h-auto w-64 sm:w-64 md:w-80 bg-black/95 sm:bg-transparent z-40 sm:z-auto transform transition-transform duration-300 ease-in-out ${showEditorialSidebar ? "translate-x-0" : "-translate-x-full"
+                } sm:translate-x-0 sm:flex-none -ml-0 sm:-ml-4 md:-ml-8 mt-0 sm:mt-12 md:mt-10 lg:mt-16 space-y-4 sm:space-y-4 md:space-y-6 mr-0 sm:mr-12 md:mr-20 pt-16 sm:pt-0 px-6 sm:px-0`}
+            >
+              <div className="mb-6 sm:mb-6">
+                <h2 className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-semibold tracking-wide text-[#E45438]">
                   Menu
-                </span>
+                </h2>
               </div>
-              <div className="space-y-3 sm:space-y-4">
+              <nav className="space-y-3 sm:space-y-2 md:space-y-3 lg:space-y-4" aria-label="카테고리 메뉴">
                 {CATEGORY_DEFS.map((cat, idx) => {
                   const isActive = cat.id === "EDITORIAL";
                   return (
                     <button
                       key={cat.id}
                       type="button"
-                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
+                      className={`w-full flex items-center gap-3 sm:gap-2 md:gap-3 text-left p-3 sm:p-2 md:p-3 rounded-lg transition-colors touch-manipulation min-h-[52px] sm:min-h-[44px] active:bg-white/15 ${isActive
+                        ? "bg-white/20 text-white font-semibold"
+                        : "text-white/80 hover:text-white hover:bg-white/10 active:opacity-80"
+                        }`}
                       onClick={() => {
                         if (cat.id === "EDITORIAL") return;
                         setShowEditorialModal(false);
                         if (cat.id === "POSTER") {
+                          setShowPosterSidebar(false);
                           setPosterModalIndex(0);
                           setShowPosterModal(true);
                         } else if (cat.id === "DIGITAL") {
+                          setShowDigitalSidebar(false);
                           setDigitalModalIndex(0);
                           setShowDigitalModal(true);
                         } else if (cat.id === "BRAND") {
+                          setShowBrandSidebar(false);
                           setBrandModalIndex(0);
                           setShowBrandModal(true);
                         } else if (cat.id === "ALL") {
+                          setShowAllSidebar(false);
                           setAllModalIndex(0);
                           setShowAllModal(true);
                         }
                       }}
+                      aria-label={`${cat.label} 카테고리로 이동`}
                     >
-                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                      <span className="text-xs sm:text-[10px] md:text-xs tracking-wider text-white/60 flex-shrink-0 font-medium">
                         {String(idx + 1).padStart(2, "0")}.
                       </span>
-                      <span className="text-sm sm:text-base font-medium">
+                      <span className="text-sm sm:text-xs md:text-sm lg:text-base font-medium break-words sm:truncate leading-tight">
                         {cat.label}
                       </span>
                     </button>
                   );
                 })}
-              </div>
-            </div>
+              </nav>
+            </aside>
+
+            {/* 모바일에서 사이드바 열려있을 때 오버레이 */}
+            {showEditorialSidebar && (
+              <div
+                className="fixed sm:hidden inset-0 bg-black/50 z-30"
+                onClick={() => setShowEditorialSidebar(false)}
+              />
+            )}
 
             {/* 오른쪽: 이미지 뷰어 */}
             {editorialImages.length > 0 && (
-              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
                   onClick={() => setEditorialModalIndex((prev) => (prev > 0 ? prev - 1 : editorialImages.length - 1))}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Previous image"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="이전 이미지"
                 >
-                  <ChevronLeftIcon className="h-6 w-6" />
+                  <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 현재 이미지 */}
@@ -554,16 +620,28 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   const imageFileName = currentImage.src.split("/").pop() || "";
                   const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
                   const isScrollable = scrollableImages.includes(imageFileName);
-                  
+
                   return (
-                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                    <div
+                      className={`flex-1 flex w-full ${isScrollable
+                        ? "items-start overflow-y-auto overflow-x-hidden"
+                        : "items-start"
+                        } justify-start sm:justify-center ${isScrollable
+                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
+                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        } px-2 sm:px-4 md:px-0`}
+                    >
                       <Image
                         src={currentImage.src}
                         width={currentImage.width}
                         height={currentImage.height}
-                        alt="Editorial design work"
-                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "편집 출판 디자인 작업물"}`}
+                        className={`${isScrollable
+                          ? "w-full h-auto min-h-full"
+                          : "max-w-full max-h-full object-contain object-left-top"
+                          } rounded-lg`}
                         priority
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                       />
                     </div>
                   );
@@ -573,17 +651,17 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                 <button
                   type="button"
                   onClick={() => setEditorialModalIndex((prev) => (prev < editorialImages.length - 1 ? prev + 1 : 0))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Next image"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="다음 이미지"
                 >
-                  <ChevronRightIcon className="h-6 w-6" />
+                  <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 하단 썸네일 네비게이션 */}
-                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
                   >
                     <AnimatePresence initial={false}>
                       {editorialImages
@@ -606,25 +684,21 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                               }}
                               exit={{ width: "0%" }}
                               onClick={() => setEditorialModalIndex(indexInEditorial)}
-                              className={`${
-                                indexInEditorial === editorialModalIndex
-                                  ? "z-20 rounded-md shadow shadow-black/50"
-                                  : "z-10"
-                              } ${
-                                indexInEditorial === 0 ? "rounded-l-md" : ""
-                              } ${
-                                indexInEditorial === editorialImages.length - 1 ? "rounded-r-md" : ""
-                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                              className={`${indexInEditorial === editorialModalIndex
+                                ? "z-20 rounded-md shadow shadow-black/50"
+                                : "z-10"
+                                } ${indexInEditorial === 0 ? "rounded-l-md" : ""
+                                } ${indexInEditorial === editorialImages.length - 1 ? "rounded-r-md" : ""
+                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
                             >
                               <Image
                                 alt="thumbnail"
                                 width={180}
                                 height={120}
-                                className={`${
-                                  indexInEditorial === editorialModalIndex
-                                    ? "brightness-110 hover:brightness-110"
-                                    : "brightness-50 contrast-125 hover:brightness-75"
-                                } h-full transform object-cover transition`}
+                                className={`${indexInEditorial === editorialModalIndex
+                                  ? "brightness-110 hover:brightness-110"
+                                  : "brightness-75 contrast-125 hover:brightness-90"
+                                  } h-full transform object-cover transition`}
                                 src={src}
                               />
                             </motion.button>
@@ -633,7 +707,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </div>
+              </main>
             )}
           </div>
         </div>
@@ -641,8 +715,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
       {/* 포스터 · 비주얼 그래픽 모달 */}
       {showPosterModal && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/90 sm:bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={(e) => {
             // 배경 클릭 시에만 모달 닫기
             if (e.target === e.currentTarget) {
@@ -650,67 +724,102 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             }
           }}
         >
-          <div 
-            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+          <div
+            className="relative w-full h-full max-w-[90rem] min-h-full sm:min-h-0 sm:max-h-[90vh] p-0 sm:p-4 md:p-6 lg:p-8 xl:p-12 flex flex-col sm:flex-row gap-0 sm:gap-4 md:gap-6 lg:gap-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 왼쪽: 카테고리 메뉴 */}
-            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
-              <div className="mb-6">
-                <span className="text-2xl sm:text-3xl font-semibold tracking-wide text-[#E45438]">
+            {/* 모바일 햄버거 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:hidden top-4 left-4 z-50 text-white text-2xl hover:opacity-70 active:opacity-50 transition-opacity touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center bg-black/40 rounded-full"
+              onClick={() => setShowPosterSidebar(!showPosterSidebar)}
+              aria-label="카테고리 메뉴 토글"
+            >
+              {showPosterSidebar ? "×" : "≡"}
+            </button>
+
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:absolute top-4 right-4 sm:top-4 sm:right-4 md:top-6 md:right-6 z-50 text-white text-4xl sm:text-3xl md:text-4xl hover:opacity-70 active:opacity-50 transition-opacity font-light leading-none touch-manipulation min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center bg-black/40 sm:bg-transparent rounded-full sm:rounded-none"
+              onClick={goToHome}
+              aria-label="모달 닫기"
+            >
+              ×
+            </button>
+
+            {/* 왼쪽: 카테고리 메뉴 (모바일에서는 햄버거로 토글, 태블릿 이상에서는 항상 표시) */}
+            <aside
+              className={`fixed sm:relative top-0 left-0 h-full sm:h-auto w-64 sm:w-64 md:w-80 bg-black/95 sm:bg-transparent z-40 sm:z-auto transform transition-transform duration-300 ease-in-out ${showPosterSidebar ? "translate-x-0" : "-translate-x-full"
+                } sm:translate-x-0 sm:flex-none -ml-0 sm:-ml-4 md:-ml-8 mt-0 sm:mt-12 md:mt-10 lg:mt-16 space-y-4 sm:space-y-4 md:space-y-6 mr-0 sm:mr-12 md:mr-20 pt-16 sm:pt-0 px-6 sm:px-0`}
+            >
+              <div className="mb-6 sm:mb-6">
+                <h2 className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-semibold tracking-wide text-[#E45438]">
                   Menu
-                </span>
+                </h2>
               </div>
-              <div className="space-y-3 sm:space-y-4">
+              <nav className="space-y-3 sm:space-y-2 md:space-y-3 lg:space-y-4" aria-label="카테고리 메뉴">
                 {CATEGORY_DEFS.map((cat, idx) => {
                   const isActive = cat.id === "POSTER";
                   return (
                     <button
                       key={cat.id}
                       type="button"
-                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
+                      className={`w-full flex items-center gap-3 sm:gap-2 md:gap-3 text-left p-3 sm:p-2 md:p-3 rounded-lg transition-colors touch-manipulation min-h-[52px] sm:min-h-[44px] active:bg-white/15 ${isActive
+                        ? "bg-white/20 text-white font-semibold"
+                        : "text-white/80 hover:text-white hover:bg-white/10 active:opacity-80"
+                        }`}
                       onClick={() => {
                         if (cat.id === "POSTER") return;
                         setShowPosterModal(false);
                         if (cat.id === "EDITORIAL") {
+                          setShowEditorialSidebar(false);
                           setShowEditorialModal(true);
                         } else if (cat.id === "DIGITAL") {
+                          setShowDigitalSidebar(false);
                           setShowDigitalModal(true);
                         } else if (cat.id === "BRAND") {
+                          setShowBrandSidebar(false);
                           setShowBrandModal(true);
                         } else if (cat.id === "ALL") {
+                          setShowAllSidebar(false);
                           setAllModalIndex(0);
                           setShowAllModal(true);
                         }
                       }}
+                      aria-label={`${cat.label} 카테고리로 이동`}
                     >
-                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                      <span className="text-xs sm:text-[10px] md:text-xs tracking-wider text-white/60 flex-shrink-0 font-medium">
                         {String(idx + 1).padStart(2, "0")}.
                       </span>
-                      <span className="text-sm sm:text-base font-medium">
+                      <span className="text-sm sm:text-xs md:text-sm lg:text-base font-medium break-words sm:truncate leading-tight">
                         {cat.label}
                       </span>
                     </button>
                   );
                 })}
-              </div>
-            </div>
+              </nav>
+            </aside>
+
+            {/* 모바일에서 사이드바 열려있을 때 오버레이 */}
+            {showPosterSidebar && (
+              <div
+                className="fixed sm:hidden inset-0 bg-black/50 z-30"
+                onClick={() => setShowPosterSidebar(false)}
+              />
+            )}
 
             {/* 오른쪽: 이미지 뷰어 */}
             {posterImages.length > 0 && (
-              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
                   onClick={() => setPosterModalIndex((prev) => (prev > 0 ? prev - 1 : posterImages.length - 1))}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Previous image"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="이전 이미지"
                 >
-                  <ChevronLeftIcon className="h-6 w-6" />
+                  <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 현재 이미지 */}
@@ -719,16 +828,28 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   const imageFileName = currentImage.src.split("/").pop() || "";
                   const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
                   const isScrollable = scrollableImages.includes(imageFileName);
-                  
+
                   return (
-                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                    <div
+                      className={`flex-1 flex w-full ${isScrollable
+                        ? "items-start overflow-y-auto overflow-x-hidden"
+                        : "items-start"
+                        } justify-start sm:justify-center ${isScrollable
+                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
+                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        } px-2 sm:px-4 md:px-0`}
+                    >
                       <Image
                         src={currentImage.src}
                         width={currentImage.width}
                         height={currentImage.height}
-                        alt="Poster design work"
-                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "포스터 비주얼 그래픽 작업물"}`}
+                        className={`${isScrollable
+                          ? "w-full h-auto min-h-full"
+                          : "max-w-full max-h-full object-contain object-left-top"
+                          } rounded-lg`}
                         priority
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                       />
                     </div>
                   );
@@ -738,17 +859,17 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                 <button
                   type="button"
                   onClick={() => setPosterModalIndex((prev) => (prev < posterImages.length - 1 ? prev + 1 : 0))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Next image"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="다음 이미지"
                 >
-                  <ChevronRightIcon className="h-6 w-6" />
+                  <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 하단 썸네일 네비게이션 */}
-                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
                   >
                     <AnimatePresence initial={false}>
                       {posterImages
@@ -771,25 +892,21 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                               }}
                               exit={{ width: "0%" }}
                               onClick={() => setPosterModalIndex(indexInPoster)}
-                              className={`${
-                                indexInPoster === posterModalIndex
-                                  ? "z-20 rounded-md shadow shadow-black/50"
-                                  : "z-10"
-                              } ${
-                                indexInPoster === 0 ? "rounded-l-md" : ""
-                              } ${
-                                indexInPoster === posterImages.length - 1 ? "rounded-r-md" : ""
-                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                              className={`${indexInPoster === posterModalIndex
+                                ? "z-20 rounded-md shadow shadow-black/50"
+                                : "z-10"
+                                } ${indexInPoster === 0 ? "rounded-l-md" : ""
+                                } ${indexInPoster === posterImages.length - 1 ? "rounded-r-md" : ""
+                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
                             >
                               <Image
                                 alt="thumbnail"
                                 width={180}
                                 height={120}
-                                className={`${
-                                  indexInPoster === posterModalIndex
-                                    ? "brightness-110 hover:brightness-110"
-                                    : "brightness-50 contrast-125 hover:brightness-75"
-                                } h-full transform object-cover transition`}
+                                className={`${indexInPoster === posterModalIndex
+                                  ? "brightness-110 hover:brightness-110"
+                                  : "brightness-75 contrast-125 hover:brightness-90"
+                                  } h-full transform object-cover transition`}
                                 src={src}
                               />
                             </motion.button>
@@ -798,7 +915,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </div>
+              </main>
             )}
           </div>
         </div>
@@ -806,8 +923,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
       {/* 디지털 콘텐츠 디자인 모달 */}
       {showDigitalModal && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/90 sm:bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={(e) => {
             // 배경 클릭 시에만 모달 닫기
             if (e.target === e.currentTarget) {
@@ -815,70 +932,104 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             }
           }}
         >
-          <div 
-            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+          <div
+            className="relative w-full h-full max-w-[90rem] min-h-full sm:min-h-0 sm:max-h-[90vh] p-0 sm:p-4 md:p-6 lg:p-8 xl:p-12 flex flex-col sm:flex-row gap-0 sm:gap-4 md:gap-6 lg:gap-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 왼쪽: 카테고리 메뉴 */}
-            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
-              <div className="mb-6">
-                <span className="text-2xl sm:text-3xl font-semibold tracking-wide text-[#E45438]">
+            {/* 모바일 햄버거 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:hidden top-4 left-4 z-50 text-white text-2xl hover:opacity-70 active:opacity-50 transition-opacity touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center bg-black/40 rounded-full"
+              onClick={() => setShowDigitalSidebar(!showDigitalSidebar)}
+              aria-label="카테고리 메뉴 토글"
+            >
+              {showDigitalSidebar ? "×" : "≡"}
+            </button>
+
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:absolute top-4 right-4 sm:top-4 sm:right-4 md:top-6 md:right-6 z-50 text-white text-4xl sm:text-3xl md:text-4xl hover:opacity-70 active:opacity-50 transition-opacity font-light leading-none touch-manipulation min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center bg-black/40 sm:bg-transparent rounded-full sm:rounded-none"
+              onClick={goToHome}
+              aria-label="모달 닫기"
+            >
+              ×
+            </button>
+
+            {/* 왼쪽: 카테고리 메뉴 (모바일에서는 햄버거로 토글, 태블릿 이상에서는 항상 표시) */}
+            <aside
+              className={`fixed sm:relative top-0 left-0 h-full sm:h-auto w-64 sm:w-64 md:w-80 bg-black/95 sm:bg-transparent z-40 sm:z-auto transform transition-transform duration-300 ease-in-out ${showDigitalSidebar ? "translate-x-0" : "-translate-x-full"
+                } sm:translate-x-0 sm:flex-none -ml-0 sm:-ml-4 md:-ml-8 mt-0 sm:mt-12 md:mt-10 lg:mt-16 space-y-4 sm:space-y-4 md:space-y-6 mr-0 sm:mr-12 md:mr-20 pt-16 sm:pt-0 px-6 sm:px-0`}
+            >
+              <div className="mb-6 sm:mb-6">
+                <h2 className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-semibold tracking-wide text-[#E45438]">
                   Menu
-                </span>
+                </h2>
               </div>
-              <div className="space-y-3 sm:space-y-4">
+              <nav className="space-y-3 sm:space-y-2 md:space-y-3 lg:space-y-4" aria-label="카테고리 메뉴">
                 {CATEGORY_DEFS.map((cat, idx) => {
                   const isActive = cat.id === "DIGITAL";
                   return (
                     <button
                       key={cat.id}
                       type="button"
-                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
+                      className={`w-full flex items-center gap-3 sm:gap-2 md:gap-3 text-left p-3 sm:p-2 md:p-3 rounded-lg transition-colors touch-manipulation min-h-[52px] sm:min-h-[44px] active:bg-white/15 ${isActive
+                        ? "bg-white/20 text-white font-semibold"
+                        : "text-white/80 hover:text-white hover:bg-white/10 active:opacity-80"
+                        }`}
                       onClick={() => {
                         if (cat.id === "DIGITAL") return;
                         setShowDigitalModal(false);
                         if (cat.id === "EDITORIAL") {
+                          setShowEditorialSidebar(false);
                           setEditorialModalIndex(0);
                           setShowEditorialModal(true);
                         } else if (cat.id === "POSTER") {
+                          setShowPosterSidebar(false);
                           setPosterModalIndex(0);
                           setShowPosterModal(true);
                         } else if (cat.id === "BRAND") {
+                          setShowBrandSidebar(false);
                           setBrandModalIndex(0);
                           setShowBrandModal(true);
                         } else if (cat.id === "ALL") {
+                          setShowAllSidebar(false);
                           setAllModalIndex(0);
                           setShowAllModal(true);
                         }
                       }}
                     >
-                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                      <span className="text-[10px] sm:text-xs tracking-wider text-white/60 flex-shrink-0">
                         {String(idx + 1).padStart(2, "0")}.
                       </span>
-                      <span className="text-sm sm:text-base font-medium">
+                      <span className="text-xs sm:text-sm md:text-base font-medium truncate">
                         {cat.label}
                       </span>
                     </button>
                   );
                 })}
-              </div>
-            </div>
+              </nav>
+            </aside>
+
+            {/* 모바일에서 사이드바 열려있을 때 오버레이 */}
+            {showDigitalSidebar && (
+              <div
+                className="fixed sm:hidden inset-0 bg-black/50 z-30"
+                onClick={() => setShowDigitalSidebar(false)}
+              />
+            )}
 
             {/* 오른쪽: 이미지 뷰어 */}
             {digitalImages.length > 0 && (
-              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
                   onClick={() => setDigitalModalIndex((prev) => (prev > 0 ? prev - 1 : digitalImages.length - 1))}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Previous image"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="이전 이미지"
                 >
-                  <ChevronLeftIcon className="h-6 w-6" />
+                  <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 현재 이미지 */}
@@ -887,16 +1038,28 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   const imageFileName = currentImage.src.split("/").pop() || "";
                   const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
                   const isScrollable = scrollableImages.includes(imageFileName);
-                  
+
                   return (
-                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                    <div
+                      className={`flex-1 flex w-full ${isScrollable
+                        ? "items-start overflow-y-auto overflow-x-hidden"
+                        : "items-start"
+                        } justify-start sm:justify-center ${isScrollable
+                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
+                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        } px-2 sm:px-4 md:px-0`}
+                    >
                       <Image
                         src={currentImage.src}
                         width={currentImage.width}
                         height={currentImage.height}
-                        alt="Digital design work"
-                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "디지털 콘텐츠 디자인 작업물"}`}
+                        className={`${isScrollable
+                          ? "w-full h-auto min-h-full"
+                          : "max-w-full max-h-full object-contain object-left-top"
+                          } rounded-lg`}
                         priority
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                       />
                     </div>
                   );
@@ -906,17 +1069,17 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                 <button
                   type="button"
                   onClick={() => setDigitalModalIndex((prev) => (prev < digitalImages.length - 1 ? prev + 1 : 0))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Next image"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="다음 이미지"
                 >
-                  <ChevronRightIcon className="h-6 w-6" />
+                  <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 하단 썸네일 네비게이션 */}
-                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
                   >
                     <AnimatePresence initial={false}>
                       {digitalImages
@@ -939,25 +1102,21 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                               }}
                               exit={{ width: "0%" }}
                               onClick={() => setDigitalModalIndex(indexInDigital)}
-                              className={`${
-                                indexInDigital === digitalModalIndex
-                                  ? "z-20 rounded-md shadow shadow-black/50"
-                                  : "z-10"
-                              } ${
-                                indexInDigital === 0 ? "rounded-l-md" : ""
-                              } ${
-                                indexInDigital === digitalImages.length - 1 ? "rounded-r-md" : ""
-                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                              className={`${indexInDigital === digitalModalIndex
+                                ? "z-20 rounded-md shadow shadow-black/50"
+                                : "z-10"
+                                } ${indexInDigital === 0 ? "rounded-l-md" : ""
+                                } ${indexInDigital === digitalImages.length - 1 ? "rounded-r-md" : ""
+                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
                             >
                               <Image
                                 alt="thumbnail"
                                 width={180}
                                 height={120}
-                                className={`${
-                                  indexInDigital === digitalModalIndex
-                                    ? "brightness-110 hover:brightness-110"
-                                    : "brightness-50 contrast-125 hover:brightness-75"
-                                } h-full transform object-cover transition`}
+                                className={`${indexInDigital === digitalModalIndex
+                                  ? "brightness-110 hover:brightness-110"
+                                  : "brightness-75 contrast-125 hover:brightness-90"
+                                  } h-full transform object-cover transition`}
                                 src={src}
                               />
                             </motion.button>
@@ -966,7 +1125,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </div>
+              </main>
             )}
           </div>
         </div>
@@ -974,8 +1133,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
       {/* 브랜드 · 패키지 디자인 모달 */}
       {showBrandModal && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/90 sm:bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={(e) => {
             // 배경 클릭 시에만 모달 닫기
             if (e.target === e.currentTarget) {
@@ -983,67 +1142,101 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             }
           }}
         >
-          <div 
-            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+          <div
+            className="relative w-full h-full max-w-[90rem] min-h-full sm:min-h-0 sm:max-h-[90vh] p-0 sm:p-4 md:p-6 lg:p-8 xl:p-12 flex flex-col sm:flex-row gap-0 sm:gap-4 md:gap-6 lg:gap-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 왼쪽: 카테고리 메뉴 */}
-            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
-              <div className="mb-6">
-                <span className="text-2xl sm:text-3xl font-bold tracking-wide text-[#E45438]">
+            {/* 모바일 햄버거 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:hidden top-4 left-4 z-50 text-white text-2xl hover:opacity-70 active:opacity-50 transition-opacity touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center bg-black/40 rounded-full"
+              onClick={() => setShowBrandSidebar(!showBrandSidebar)}
+              aria-label="카테고리 메뉴 토글"
+            >
+              {showBrandSidebar ? "×" : "≡"}
+            </button>
+
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:absolute top-4 right-4 sm:top-4 sm:right-4 md:top-6 md:right-6 z-50 text-white text-4xl sm:text-3xl md:text-4xl hover:opacity-70 active:opacity-50 transition-opacity font-light leading-none touch-manipulation min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center bg-black/40 sm:bg-transparent rounded-full sm:rounded-none"
+              onClick={goToHome}
+              aria-label="모달 닫기"
+            >
+              ×
+            </button>
+
+            {/* 왼쪽: 카테고리 메뉴 (모바일에서는 햄버거로 토글, 태블릿 이상에서는 항상 표시) */}
+            <aside
+              className={`fixed sm:relative top-0 left-0 h-full sm:h-auto w-64 sm:w-64 md:w-80 bg-black/95 sm:bg-transparent z-40 sm:z-auto transform transition-transform duration-300 ease-in-out ${showBrandSidebar ? "translate-x-0" : "-translate-x-full"
+                } sm:translate-x-0 sm:flex-none -ml-0 sm:-ml-4 md:-ml-8 mt-0 sm:mt-12 md:mt-10 lg:mt-16 space-y-4 sm:space-y-4 md:space-y-6 mr-0 sm:mr-12 md:mr-20 pt-16 sm:pt-0 px-6 sm:px-0`}
+            >
+              <div className="mb-6 sm:mb-6">
+                <h2 className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-semibold tracking-wide text-[#E45438]">
                   Menu
-                </span>
+                </h2>
               </div>
-              <div className="space-y-3 sm:space-y-4">
+              <nav className="space-y-3 sm:space-y-2 md:space-y-3 lg:space-y-4" aria-label="카테고리 메뉴">
                 {CATEGORY_DEFS.map((cat, idx) => {
                   const isActive = cat.id === "BRAND";
                   return (
                     <button
                       key={cat.id}
                       type="button"
-                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
+                      className={`w-full flex items-center gap-3 sm:gap-2 md:gap-3 text-left p-3 sm:p-2 md:p-3 rounded-lg transition-colors touch-manipulation min-h-[52px] sm:min-h-[44px] active:bg-white/15 ${isActive
+                        ? "bg-white/20 text-white font-semibold"
+                        : "text-white/80 hover:text-white hover:bg-white/10 active:opacity-80"
+                        }`}
                       onClick={() => {
                         if (cat.id === "BRAND") return;
                         setShowBrandModal(false);
                         if (cat.id === "EDITORIAL") {
+                          setShowEditorialSidebar(false);
                           setShowEditorialModal(true);
                         } else if (cat.id === "POSTER") {
+                          setShowPosterSidebar(false);
                           setShowPosterModal(true);
                         } else if (cat.id === "DIGITAL") {
+                          setShowDigitalSidebar(false);
                           setShowDigitalModal(true);
                         } else if (cat.id === "ALL") {
+                          setShowAllSidebar(false);
                           setAllModalIndex(0);
                           setShowAllModal(true);
                         }
                       }}
                     >
-                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                      <span className="text-[10px] sm:text-xs tracking-wider text-white/60 flex-shrink-0">
                         {String(idx + 1).padStart(2, "0")}.
                       </span>
-                      <span className="text-sm sm:text-base font-medium">
+                      <span className="text-xs sm:text-sm md:text-base font-medium truncate">
                         {cat.label}
                       </span>
                     </button>
                   );
                 })}
-              </div>
-            </div>
+              </nav>
+            </aside>
+
+            {/* 모바일에서 사이드바 열려있을 때 오버레이 */}
+            {showBrandSidebar && (
+              <div
+                className="fixed sm:hidden inset-0 bg-black/50 z-30"
+                onClick={() => setShowBrandSidebar(false)}
+              />
+            )}
 
             {/* 오른쪽: 이미지 뷰어 */}
             {brandImages.length > 0 && (
-              <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
                   onClick={() => setBrandModalIndex((prev) => (prev > 0 ? prev - 1 : brandImages.length - 1))}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Previous image"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="이전 이미지"
                 >
-                  <ChevronLeftIcon className="h-6 w-6" />
+                  <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 현재 이미지 */}
@@ -1052,16 +1245,28 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   const imageFileName = currentImage.src.split("/").pop() || "";
                   const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
                   const isScrollable = scrollableImages.includes(imageFileName);
-                  
+
                   return (
-                    <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                    <div
+                      className={`flex-1 flex w-full ${isScrollable
+                        ? "items-start overflow-y-auto overflow-x-hidden"
+                        : "items-start"
+                        } justify-start sm:justify-center ${isScrollable
+                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
+                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        } px-2 sm:px-4 md:px-0`}
+                    >
                       <Image
                         src={currentImage.src}
                         width={currentImage.width}
                         height={currentImage.height}
-                        alt="Brand design work"
-                        className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                        alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "브랜드 패키지 디자인 작업물"}`}
+                        className={`${isScrollable
+                          ? "w-full h-auto min-h-full"
+                          : "max-w-full max-h-full object-contain object-left-top"
+                          } rounded-lg`}
                         priority
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                       />
                     </div>
                   );
@@ -1071,17 +1276,17 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                 <button
                   type="button"
                   onClick={() => setBrandModalIndex((prev) => (prev < brandImages.length - 1 ? prev + 1 : 0))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                  aria-label="Next image"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                  aria-label="다음 이미지"
                 >
-                  <ChevronRightIcon className="h-6 w-6" />
+                  <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
                 {/* 하단 썸네일 네비게이션 */}
-                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
                   >
                     <AnimatePresence initial={false}>
                       {brandImages
@@ -1104,25 +1309,21 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                               }}
                               exit={{ width: "0%" }}
                               onClick={() => setBrandModalIndex(indexInBrand)}
-                              className={`${
-                                indexInBrand === brandModalIndex
-                                  ? "z-20 rounded-md shadow shadow-black/50"
-                                  : "z-10"
-                              } ${
-                                indexInBrand === 0 ? "rounded-l-md" : ""
-                              } ${
-                                indexInBrand === brandImages.length - 1 ? "rounded-r-md" : ""
-                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                              className={`${indexInBrand === brandModalIndex
+                                ? "z-20 rounded-md shadow shadow-black/50"
+                                : "z-10"
+                                } ${indexInBrand === 0 ? "rounded-l-md" : ""
+                                } ${indexInBrand === brandImages.length - 1 ? "rounded-r-md" : ""
+                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
                             >
                               <Image
                                 alt="thumbnail"
                                 width={180}
                                 height={120}
-                                className={`${
-                                  indexInBrand === brandModalIndex
-                                    ? "brightness-110 hover:brightness-110"
-                                    : "brightness-50 contrast-125 hover:brightness-75"
-                                } h-full transform object-cover transition`}
+                                className={`${indexInBrand === brandModalIndex
+                                  ? "brightness-110 hover:brightness-110"
+                                  : "brightness-75 contrast-125 hover:brightness-90"
+                                  } h-full transform object-cover transition`}
                                 src={src}
                               />
                             </motion.button>
@@ -1131,7 +1332,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </div>
+              </main>
             )}
           </div>
         </div>
@@ -1139,8 +1340,8 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
       {/* 전체 모달 */}
       {showAllModal && allImagesForModal.length > 0 && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/90 sm:bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={(e) => {
             // 배경 클릭 시에만 모달 닫기
             if (e.target === e.currentTarget) {
@@ -1148,65 +1349,99 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             }
           }}
         >
-          <div 
-            className="relative w-full h-full max-w-7xl max-h-[90vh] p-6 sm:p-8 md:p-12 flex gap-8"
+          <div
+            className="relative w-full h-full max-w-[90rem] min-h-full sm:min-h-0 sm:max-h-[90vh] p-0 sm:p-4 md:p-6 lg:p-8 xl:p-12 flex flex-col sm:flex-row gap-0 sm:gap-4 md:gap-6 lg:gap-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 왼쪽: 카테고리 메뉴 */}
-            <div className="flex-none w-64 sm:w-80 -ml-4 sm:-ml-8 mt-10 sm:mt-16 space-y-4 sm:space-y-6">
-              <div className="mb-6">
-                <span className="text-2xl sm:text-3xl font-bold tracking-wide text-[#E45438]">
+            {/* 모바일 햄버거 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:hidden top-4 left-4 z-50 text-white text-2xl hover:opacity-70 active:opacity-50 transition-opacity touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center bg-black/40 rounded-full"
+              onClick={() => setShowAllSidebar(!showAllSidebar)}
+              aria-label="카테고리 메뉴 토글"
+            >
+              {showAllSidebar ? "×" : "≡"}
+            </button>
+
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              className="fixed sm:absolute top-4 right-4 sm:top-4 sm:right-4 md:top-6 md:right-6 z-50 text-white text-4xl sm:text-3xl md:text-4xl hover:opacity-70 active:opacity-50 transition-opacity font-light leading-none touch-manipulation min-w-[48px] min-h-[48px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center bg-black/40 sm:bg-transparent rounded-full sm:rounded-none"
+              onClick={goToHome}
+              aria-label="모달 닫기"
+            >
+              ×
+            </button>
+
+            {/* 왼쪽: 카테고리 메뉴 (모바일에서는 햄버거로 토글, 태블릿 이상에서는 항상 표시) */}
+            <aside
+              className={`fixed sm:relative top-0 left-0 h-full sm:h-auto w-64 sm:w-64 md:w-80 bg-black/95 sm:bg-transparent z-40 sm:z-auto transform transition-transform duration-300 ease-in-out ${showAllSidebar ? "translate-x-0" : "-translate-x-full"
+                } sm:translate-x-0 sm:flex-none -ml-0 sm:-ml-4 md:-ml-8 mt-0 sm:mt-12 md:mt-10 lg:mt-16 space-y-4 sm:space-y-4 md:space-y-6 mr-0 sm:mr-12 md:mr-20 pt-16 sm:pt-0 px-6 sm:px-0`}
+            >
+              <div className="mb-6 sm:mb-6">
+                <h2 className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-semibold tracking-wide text-[#E45438]">
                   Menu
-                </span>
+                </h2>
               </div>
-              <div className="space-y-3 sm:space-y-4">
+              <nav className="space-y-3 sm:space-y-2 md:space-y-3 lg:space-y-4" aria-label="카테고리 메뉴">
                 {CATEGORY_DEFS.map((cat, idx) => {
                   const isActive = cat.id === "ALL";
                   return (
                     <button
                       key={cat.id}
                       type="button"
-                      className={`w-full flex items-center gap-3 text-left p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
+                      className={`w-full flex items-center gap-3 sm:gap-2 md:gap-3 text-left p-3 sm:p-2 md:p-3 rounded-lg transition-colors touch-manipulation min-h-[52px] sm:min-h-[44px] active:bg-white/15 ${isActive
+                        ? "bg-white/20 text-white font-semibold"
+                        : "text-white/80 hover:text-white hover:bg-white/10 active:opacity-80"
+                        }`}
                       onClick={() => {
                         if (cat.id === "ALL") return;
                         setShowAllModal(false);
                         if (cat.id === "EDITORIAL") {
+                          setShowEditorialSidebar(false);
                           setShowEditorialModal(true);
                         } else if (cat.id === "POSTER") {
+                          setShowPosterSidebar(false);
                           setShowPosterModal(true);
                         } else if (cat.id === "DIGITAL") {
+                          setShowDigitalSidebar(false);
                           setShowDigitalModal(true);
                         } else if (cat.id === "BRAND") {
+                          setShowBrandSidebar(false);
                           setShowBrandModal(true);
                         }
                       }}
                     >
-                      <span className="text-xs sm:text-sm tracking-wider text-white/60">
+                      <span className="text-xs sm:text-[10px] md:text-xs tracking-wider text-white/60 flex-shrink-0 font-medium">
                         {String(idx + 1).padStart(2, "0")}.
                       </span>
-                      <span className="text-sm sm:text-base font-medium">
+                      <span className="text-sm sm:text-xs md:text-sm lg:text-base font-medium break-words sm:truncate leading-tight">
                         {cat.label}
                       </span>
                     </button>
                   );
                 })}
-              </div>
-            </div>
+              </nav>
+            </aside>
+
+            {/* 모바일에서 사이드바 열려있을 때 오버레이 */}
+            {showAllSidebar && (
+              <div
+                className="fixed sm:hidden inset-0 bg-black/50 z-30"
+                onClick={() => setShowAllSidebar(false)}
+              />
+            )}
 
             {/* 오른쪽: 이미지 뷰어 */}
-            <div className="flex-1 flex flex-col items-center justify-center relative pb-20">
+            <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
               {/* 이전 이미지 버튼 */}
               <button
                 type="button"
                 onClick={() => setAllModalIndex((prev) => (prev > 0 ? prev - 1 : allImagesForModal.length - 1))}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                aria-label="Previous image"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                aria-label="이전 이미지"
               >
-                <ChevronLeftIcon className="h-6 w-6" />
+                <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
 
               {/* 현재 이미지 */}
@@ -1215,16 +1450,32 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                 const imageFileName = currentImage.src.split("/").pop() || "";
                 const scrollableImages = ["모바일 디자인.jpg", "책자.jpg"];
                 const isScrollable = scrollableImages.includes(imageFileName);
-                
+
                 return (
-                  <div className={`flex-1 flex ${isScrollable ? "items-start overflow-y-auto overflow-x-hidden" : "items-center"} justify-center ${isScrollable ? "max-h-[calc(90vh-120px)] py-4" : "max-h-[calc(90vh-120px)]"}`}>
+                  <div
+                    className={`flex-1 flex w-full ${isScrollable
+                      ? "items-start overflow-y-auto overflow-x-hidden"
+                      : "items-start"
+                      } justify-center ${isScrollable
+                        ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
+                        : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                      } px-2 sm:px-4 md:px-0`}
+                  >
                     <Image
                       src={currentImage.src}
                       width={currentImage.width}
                       height={currentImage.height}
-                      alt="All portfolio work"
-                      className={`${isScrollable ? "w-full h-auto min-h-full" : "max-w-full max-h-full object-contain"} rounded-lg`}
+                      alt={`김민지 포트폴리오 - ${currentImage.src
+                        .split("/")
+                        .pop()
+                        ?.replace(/\.[^/.]+$/, "") || "포트폴리오 작업물"
+                        }`}
+                      className={`${isScrollable
+                        ? "w-full h-auto min-h-full"
+                        : "max-w-full max-h-full object-contain object-left-top"
+                        } rounded-lg`}
                       priority
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                     />
                   </div>
                 );
@@ -1234,17 +1485,17 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
               <button
                 type="button"
                 onClick={() => setAllModalIndex((prev) => (prev < allImagesForModal.length - 1 ? prev + 1 : 0))}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-3 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
-                aria-label="Next image"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/60 sm:bg-black/50 p-1.5 sm:p-3 text-white/90 sm:text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white active:bg-black/80 touch-manipulation min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
+                aria-label="다음 이미지"
               >
-                <ChevronRightIcon className="h-6 w-6" />
+                <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
 
               {/* 하단 썸네일 네비게이션 */}
-              <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60 pb-4">
+              <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
                 <motion.div
                   initial={false}
-                  className="mx-auto mt-6 mb-2 flex aspect-[3/2] h-14 max-w-5xl"
+                  className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
                 >
                   <AnimatePresence initial={false}>
                     {allImagesForModal
@@ -1267,25 +1518,21 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                             }}
                             exit={{ width: "0%" }}
                             onClick={() => setAllModalIndex(indexInAll)}
-                            className={`${
-                              indexInAll === allModalIndex
-                                ? "z-20 rounded-md shadow shadow-black/50"
-                                : "z-10"
-                            } ${
-                              indexInAll === 0 ? "rounded-l-md" : ""
-                            } ${
-                              indexInAll === allImagesForModal.length - 1 ? "rounded-r-md" : ""
-                            } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                            className={`${indexInAll === allModalIndex
+                              ? "z-20 rounded-md shadow shadow-black/50"
+                              : "z-10"
+                              } ${indexInAll === 0 ? "rounded-l-md" : ""
+                              } ${indexInAll === allImagesForModal.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
                           >
                             <Image
                               alt="thumbnail"
                               width={180}
                               height={120}
-                              className={`${
-                                indexInAll === allModalIndex
-                                  ? "brightness-110 hover:brightness-110"
-                                  : "brightness-50 contrast-125 hover:brightness-75"
-                              } h-full transform object-cover transition`}
+                              className={`${indexInAll === allModalIndex
+                                ? "brightness-110 hover:brightness-110"
+                                : "brightness-75 contrast-125 hover:brightness-90"
+                                } h-full transform object-cover transition`}
                               src={src}
                             />
                           </motion.button>
@@ -1294,7 +1541,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   </AnimatePresence>
                 </motion.div>
               </div>
-            </div>
+            </main>
           </div>
         </div>
       )}

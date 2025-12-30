@@ -47,7 +47,8 @@ export default function getLocalImages(): ImageProps[] {
   // 각 줄별로 이미지 생성하고 줄 정보 포함
   rowGroups.forEach(({ row, files }) => {
     files.forEach((file) => {
-      const src = `/images/${file}`;
+      // 프로필.png는 /프로필.png로, 나머지는 /images/ 경로 사용
+      const src = file === "프로필.png" ? `/프로필.png` : `/images/${file}`;
       if (seenSrc.has(src)) return; // 이미 추가된 이미지면 건너뛰기
 
       images.push({

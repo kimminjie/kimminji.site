@@ -43,7 +43,7 @@ export default function Modal({
   }, [photoId, images.length]);
 
   const currentImage = images[curIndex];
-  const isProfileModal = currentImage?.src === "/images/프로필.png";
+  const isProfileModal = currentImage?.src === "/프로필.png";
 
   function handleClose() {
     router.push("/");
