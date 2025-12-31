@@ -42,6 +42,8 @@ export default function Carousel3D({
   const [containerHeight, setContainerHeight] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const containerScrollRef = useRef<HTMLDivElement>(null);
 
   // 1번 모션용 첫 번째 이미지 (세로 스크롤), 나머지는 2번 모션용 3D 캐러셀
   const firstImage = imageData[0];
@@ -57,8 +59,33 @@ export default function Carousel3D({
       setContainerHeight(containerRef.current.clientHeight);
     }
 
+    // 스크롤 감지 (window와 container 모두)
+    const handleScroll = () => {
+      const windowScrollY = window.scrollY || window.pageYOffset;
+      const containerScrollTop = containerScrollRef.current?.scrollTop || 0;
+      const totalScroll = windowScrollY + containerScrollTop;
+      const shouldShow = totalScroll > 50; // 50px 이상 스크롤 시
+      setIsScrolled(shouldShow);
+    };
+
+    // 약간의 지연 후 컨테이너 참조 확인
+    const timeoutId = setTimeout(() => {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      const containerElement = containerScrollRef.current;
+      if (containerElement) {
+        containerElement.addEventListener("scroll", handleScroll, { passive: true });
+      }
+      handleScroll(); // 초기 상태 확인
+    }, 100);
+
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener("resize", updateIsMobile);
+      window.removeEventListener("scroll", handleScroll);
+      const containerElement = containerScrollRef.current;
+      if (containerElement) {
+        containerElement.removeEventListener("scroll", handleScroll);
+      }
     };
   }, []);
 
@@ -193,6 +220,7 @@ export default function Carousel3D({
 
   return (
     <div
+      ref={containerScrollRef}
       className="relative flex flex-col lg:flex-row min-h-[88vh] items-center justify-center lg:justify-end rounded-b-2xl py-6 sm:py-8 md:py-10 px-3 sm:px-4 md:px-6 lg:px-10 overflow-x-hidden overflow-y-auto lg:overflow-y-hidden gap-4 sm:gap-6"
       style={{ backgroundColor: '#F7F5F2' }}
     >
@@ -204,7 +232,7 @@ export default function Carousel3D({
 
       {/* 헤더 텍스트 */}
       <div
-        className="absolute top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-20 flex flex-col max-w-[calc(100vw-2rem)]"
+        className={`absolute top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-20 flex flex-col max-w-[calc(100vw-2rem)] transition-opacity duration-300 ${isScrolled ? "opacity-0" : "opacity-100"}`}
         style={{ fontFamily: uiSansFamily }}
       >
         <div className="ml-1 lg:ml-2 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#E45438] font-sans font-bold tracking-wide break-words">
@@ -217,11 +245,14 @@ export default function Carousel3D({
 
       {/* 상단 고정 KIM MINJI (헤더용) */}
       <div
-        className="fixed top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-50 flex flex-col max-w-[calc(100vw-2rem)]"
+        className="fixed top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-50 flex items-center gap-3 sm:gap-4 max-w-[calc(100vw-2rem)] transition-opacity duration-300"
         style={{ fontFamily: uiSansFamily }}
       >
         <div className="ml-1 lg:ml-2 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#E45438] font-sans font-bold tracking-wide break-words">
           KIM MINJI
+        </div>
+        <div className={`text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#E45438] font-sans font-bold tracking-wide break-words transition-all duration-300 ${isScrolled ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"}`}>
+          PROJECTS
         </div>
       </div>
 
