@@ -603,7 +603,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
             {/* 오른쪽: 이미지 뷰어 */}
             {editorialImages.length > 0 && (
-              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-center justify-center relative min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
@@ -623,12 +623,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
                   return (
                     <div
-                      className={`flex-1 flex w-full ${isScrollable
+                      className={`flex w-full ${isScrollable
                         ? "items-start overflow-y-auto overflow-x-hidden"
-                        : "items-start"
-                        } justify-start sm:justify-center ${isScrollable
-                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
-                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        : "items-center"
+                        } justify-center ${isScrollable
+                          ? "max-h-[90vh] py-1"
+                          : "max-h-[90vh]"
                         } px-2 sm:px-4 md:px-0`}
                     >
                       <Image
@@ -638,7 +638,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                         alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "편집 출판 디자인 작업물"}`}
                         className={`${isScrollable
                           ? "w-full h-auto min-h-full"
-                          : "max-w-full max-h-full object-contain object-left-top"
+                          : "max-w-full max-h-full object-contain"
                           } rounded-lg`}
                         priority
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
@@ -657,58 +657,61 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
-                {/* 하단 썸네일 네비게이션 */}
-                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
+              </main>
+            )}
+
+            {/* 하단 썸네일 네비게이션 */}
+            {editorialImages.length > 0 && (() => {
+              const filteredEditorialImages = editorialImages.filter((img) =>
+                range(editorialModalIndex - 15, editorialModalIndex + 15).includes(img.id)
+              );
+              return (
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
+                    className="mx-auto mt-6 mb-6 flex aspect-[3/2] h-14"
                   >
                     <AnimatePresence initial={false}>
-                      {editorialImages
-                        .filter((img, idx) => {
-                          return range(editorialModalIndex - 15, editorialModalIndex + 15).includes(idx);
-                        })
-                        .map(({ src, width, height, id }, idx) => {
-                          const indexInEditorial = editorialImages.findIndex((img) => img.id === id);
-                          return (
-                            <motion.button
-                              key={id}
-                              initial={{
-                                width: "0%",
-                                x: `${Math.max((editorialModalIndex - 1) * -100, 15 * -100)}%`,
-                              }}
-                              animate={{
-                                scale: indexInEditorial === editorialModalIndex ? 1.25 : 1,
-                                width: "100%",
-                                x: `${Math.max(editorialModalIndex * -100, 15 * -100)}%`,
-                              }}
-                              exit={{ width: "0%" }}
-                              onClick={() => setEditorialModalIndex(indexInEditorial)}
-                              className={`${indexInEditorial === editorialModalIndex
-                                ? "z-20 rounded-md shadow shadow-black/50"
-                                : "z-10"
-                                } ${indexInEditorial === 0 ? "rounded-l-md" : ""
-                                } ${indexInEditorial === editorialImages.length - 1 ? "rounded-r-md" : ""
-                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
-                            >
-                              <Image
-                                alt="thumbnail"
-                                width={180}
-                                height={120}
-                                className={`${indexInEditorial === editorialModalIndex
-                                  ? "brightness-110 hover:brightness-110"
-                                  : "brightness-75 contrast-125 hover:brightness-90"
-                                  } h-full transform object-cover transition`}
-                                src={src}
-                              />
-                            </motion.button>
-                          );
-                        })}
+                      {filteredEditorialImages.map(({ src, width, height, id }, idx) => {
+                        const actualIndex = editorialImages.findIndex(img => img.id === id);
+                        return (
+                          <motion.button
+                            key={id}
+                            initial={{
+                              width: "0%",
+                              x: `${Math.max((editorialModalIndex - 1) * -100, 15 * -100)}%`,
+                            }}
+                            animate={{
+                              scale: actualIndex === editorialModalIndex ? 1.25 : 1,
+                              width: "100%",
+                              x: `${Math.max(editorialModalIndex * -100, 15 * -100)}%`,
+                            }}
+                            exit={{ width: "0%" }}
+                            onClick={() => setEditorialModalIndex(actualIndex)}
+                            className={`${actualIndex === editorialModalIndex
+                              ? "z-20 rounded-md shadow shadow-black/50"
+                              : "z-10"
+                              } ${actualIndex === 0 ? "rounded-l-md" : ""} ${actualIndex === editorialImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                          >
+                            <Image
+                              alt="small photos on the bottom"
+                              width={180}
+                              height={120}
+                              className={`${actualIndex === editorialModalIndex
+                                ? "brightness-110 hover:brightness-110"
+                                : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                              src={src}
+                            />
+                          </motion.button>
+                        );
+                      })}
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </main>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
@@ -811,7 +814,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
             {/* 오른쪽: 이미지 뷰어 */}
             {posterImages.length > 0 && (
-              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-center justify-center relative min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
@@ -831,12 +834,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
                   return (
                     <div
-                      className={`flex-1 flex w-full ${isScrollable
+                      className={`flex w-full ${isScrollable
                         ? "items-start overflow-y-auto overflow-x-hidden"
-                        : "items-start"
-                        } justify-start sm:justify-center ${isScrollable
-                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
-                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        : "items-center"
+                        } justify-center ${isScrollable
+                          ? "max-h-[90vh] py-1"
+                          : "max-h-[90vh]"
                         } px-2 sm:px-4 md:px-0`}
                     >
                       <Image
@@ -846,7 +849,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                         alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "포스터 비주얼 그래픽 작업물"}`}
                         className={`${isScrollable
                           ? "w-full h-auto min-h-full"
-                          : "max-w-full max-h-full object-contain object-left-top"
+                          : "max-w-full max-h-full object-contain"
                           } rounded-lg`}
                         priority
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
@@ -865,58 +868,61 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
-                {/* 하단 썸네일 네비게이션 */}
-                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
+              </main>
+            )}
+
+            {/* 하단 썸네일 네비게이션 */}
+            {posterImages.length > 0 && (() => {
+              const filteredPosterImages = posterImages.filter((img) =>
+                range(posterModalIndex - 15, posterModalIndex + 15).includes(img.id)
+              );
+              return (
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
+                    className="mx-auto mt-6 mb-6 flex aspect-[3/2] h-14"
                   >
                     <AnimatePresence initial={false}>
-                      {posterImages
-                        .filter((img, idx) => {
-                          return range(posterModalIndex - 15, posterModalIndex + 15).includes(idx);
-                        })
-                        .map(({ src, width, height, id }, idx) => {
-                          const indexInPoster = posterImages.findIndex((img) => img.id === id);
-                          return (
-                            <motion.button
-                              key={id}
-                              initial={{
-                                width: "0%",
-                                x: `${Math.max((posterModalIndex - 1) * -100, 15 * -100)}%`,
-                              }}
-                              animate={{
-                                scale: indexInPoster === posterModalIndex ? 1.25 : 1,
-                                width: "100%",
-                                x: `${Math.max(posterModalIndex * -100, 15 * -100)}%`,
-                              }}
-                              exit={{ width: "0%" }}
-                              onClick={() => setPosterModalIndex(indexInPoster)}
-                              className={`${indexInPoster === posterModalIndex
-                                ? "z-20 rounded-md shadow shadow-black/50"
-                                : "z-10"
-                                } ${indexInPoster === 0 ? "rounded-l-md" : ""
-                                } ${indexInPoster === posterImages.length - 1 ? "rounded-r-md" : ""
-                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
-                            >
-                              <Image
-                                alt="thumbnail"
-                                width={180}
-                                height={120}
-                                className={`${indexInPoster === posterModalIndex
-                                  ? "brightness-110 hover:brightness-110"
-                                  : "brightness-75 contrast-125 hover:brightness-90"
-                                  } h-full transform object-cover transition`}
-                                src={src}
-                              />
-                            </motion.button>
-                          );
-                        })}
+                      {filteredPosterImages.map(({ src, width, height, id }, idx) => {
+                        const actualIndex = posterImages.findIndex(img => img.id === id);
+                        return (
+                          <motion.button
+                            key={id}
+                            initial={{
+                              width: "0%",
+                              x: `${Math.max((posterModalIndex - 1) * -100, 15 * -100)}%`,
+                            }}
+                            animate={{
+                              scale: actualIndex === posterModalIndex ? 1.25 : 1,
+                              width: "100%",
+                              x: `${Math.max(posterModalIndex * -100, 15 * -100)}%`,
+                            }}
+                            exit={{ width: "0%" }}
+                            onClick={() => setPosterModalIndex(actualIndex)}
+                            className={`${actualIndex === posterModalIndex
+                              ? "z-20 rounded-md shadow shadow-black/50"
+                              : "z-10"
+                              } ${actualIndex === 0 ? "rounded-l-md" : ""} ${actualIndex === posterImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                          >
+                            <Image
+                              alt="small photos on the bottom"
+                              width={180}
+                              height={120}
+                              className={`${actualIndex === posterModalIndex
+                                ? "brightness-110 hover:brightness-110"
+                                : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                              src={src}
+                            />
+                          </motion.button>
+                        );
+                      })}
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </main>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
@@ -1021,7 +1027,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
             {/* 오른쪽: 이미지 뷰어 */}
             {digitalImages.length > 0 && (
-              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-center justify-center relative min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
@@ -1041,12 +1047,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
                   return (
                     <div
-                      className={`flex-1 flex w-full ${isScrollable
+                      className={`flex w-full ${isScrollable
                         ? "items-start overflow-y-auto overflow-x-hidden"
-                        : "items-start"
-                        } justify-start sm:justify-center ${isScrollable
-                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
-                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        : "items-center"
+                        } justify-center ${isScrollable
+                          ? "max-h-[90vh] py-1"
+                          : "max-h-[90vh]"
                         } px-2 sm:px-4 md:px-0`}
                     >
                       <Image
@@ -1056,7 +1062,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                         alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "디지털 콘텐츠 디자인 작업물"}`}
                         className={`${isScrollable
                           ? "w-full h-auto min-h-full"
-                          : "max-w-full max-h-full object-contain object-left-top"
+                          : "max-w-full max-h-full object-contain"
                           } rounded-lg`}
                         priority
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
@@ -1075,58 +1081,61 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
-                {/* 하단 썸네일 네비게이션 */}
-                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
+              </main>
+            )}
+
+            {/* 하단 썸네일 네비게이션 */}
+            {digitalImages.length > 0 && (() => {
+              const filteredDigitalImages = digitalImages.filter((img) =>
+                range(digitalModalIndex - 15, digitalModalIndex + 15).includes(img.id)
+              );
+              return (
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
+                    className="mx-auto mt-6 mb-6 flex aspect-[3/2] h-14"
                   >
                     <AnimatePresence initial={false}>
-                      {digitalImages
-                        .filter((img, idx) => {
-                          return range(digitalModalIndex - 15, digitalModalIndex + 15).includes(idx);
-                        })
-                        .map(({ src, width, height, id }, idx) => {
-                          const indexInDigital = digitalImages.findIndex((img) => img.id === id);
-                          return (
-                            <motion.button
-                              key={id}
-                              initial={{
-                                width: "0%",
-                                x: `${Math.max((digitalModalIndex - 1) * -100, 15 * -100)}%`,
-                              }}
-                              animate={{
-                                scale: indexInDigital === digitalModalIndex ? 1.25 : 1,
-                                width: "100%",
-                                x: `${Math.max(digitalModalIndex * -100, 15 * -100)}%`,
-                              }}
-                              exit={{ width: "0%" }}
-                              onClick={() => setDigitalModalIndex(indexInDigital)}
-                              className={`${indexInDigital === digitalModalIndex
-                                ? "z-20 rounded-md shadow shadow-black/50"
-                                : "z-10"
-                                } ${indexInDigital === 0 ? "rounded-l-md" : ""
-                                } ${indexInDigital === digitalImages.length - 1 ? "rounded-r-md" : ""
-                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
-                            >
-                              <Image
-                                alt="thumbnail"
-                                width={180}
-                                height={120}
-                                className={`${indexInDigital === digitalModalIndex
-                                  ? "brightness-110 hover:brightness-110"
-                                  : "brightness-75 contrast-125 hover:brightness-90"
-                                  } h-full transform object-cover transition`}
-                                src={src}
-                              />
-                            </motion.button>
-                          );
-                        })}
+                      {filteredDigitalImages.map(({ src, width, height, id }, idx) => {
+                        const actualIndex = digitalImages.findIndex(img => img.id === id);
+                        return (
+                          <motion.button
+                            key={id}
+                            initial={{
+                              width: "0%",
+                              x: `${Math.max((digitalModalIndex - 1) * -100, 15 * -100)}%`,
+                            }}
+                            animate={{
+                              scale: actualIndex === digitalModalIndex ? 1.25 : 1,
+                              width: "100%",
+                              x: `${Math.max(digitalModalIndex * -100, 15 * -100)}%`,
+                            }}
+                            exit={{ width: "0%" }}
+                            onClick={() => setDigitalModalIndex(actualIndex)}
+                            className={`${actualIndex === digitalModalIndex
+                              ? "z-20 rounded-md shadow shadow-black/50"
+                              : "z-10"
+                              } ${actualIndex === 0 ? "rounded-l-md" : ""} ${actualIndex === digitalImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                          >
+                            <Image
+                              alt="small photos on the bottom"
+                              width={180}
+                              height={120}
+                              className={`${actualIndex === digitalModalIndex
+                                ? "brightness-110 hover:brightness-110"
+                                : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                              src={src}
+                            />
+                          </motion.button>
+                        );
+                      })}
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </main>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
@@ -1228,7 +1237,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
             {/* 오른쪽: 이미지 뷰어 */}
             {brandImages.length > 0 && (
-              <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
+              <main className="flex-1 w-full sm:w-auto flex flex-col items-center justify-center relative min-h-0 h-full sm:h-auto">
                 {/* 이전 이미지 버튼 */}
                 <button
                   type="button"
@@ -1248,12 +1257,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
                   return (
                     <div
-                      className={`flex-1 flex w-full ${isScrollable
+                      className={`flex w-full ${isScrollable
                         ? "items-start overflow-y-auto overflow-x-hidden"
-                        : "items-start"
-                        } justify-start sm:justify-center ${isScrollable
-                          ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
-                          : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        : "items-center"
+                        } justify-center ${isScrollable
+                          ? "max-h-[90vh] py-1"
+                          : "max-h-[90vh]"
                         } px-2 sm:px-4 md:px-0`}
                     >
                       <Image
@@ -1263,7 +1272,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                         alt={`김민지 포트폴리오 - ${currentImage.src.split("/").pop()?.replace(/\.[^/.]+$/, "") || "브랜드 패키지 디자인 작업물"}`}
                         className={`${isScrollable
                           ? "w-full h-auto min-h-full"
-                          : "max-w-full max-h-full object-contain object-left-top"
+                          : "max-w-full max-h-full object-contain"
                           } rounded-lg`}
                         priority
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
@@ -1282,58 +1291,61 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                   <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
 
-                {/* 하단 썸네일 네비게이션 */}
-                <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
+              </main>
+            )}
+
+            {/* 하단 썸네일 네비게이션 */}
+            {brandImages.length > 0 && (() => {
+              const filteredBrandImages = brandImages.filter((img) =>
+                range(brandModalIndex - 15, brandModalIndex + 15).includes(img.id)
+              );
+              return (
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60">
                   <motion.div
                     initial={false}
-                    className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
+                    className="mx-auto mt-6 mb-6 flex aspect-[3/2] h-14"
                   >
                     <AnimatePresence initial={false}>
-                      {brandImages
-                        .filter((img, idx) => {
-                          return range(brandModalIndex - 15, brandModalIndex + 15).includes(idx);
-                        })
-                        .map(({ src, width, height, id }, idx) => {
-                          const indexInBrand = brandImages.findIndex((img) => img.id === id);
-                          return (
-                            <motion.button
-                              key={id}
-                              initial={{
-                                width: "0%",
-                                x: `${Math.max((brandModalIndex - 1) * -100, 15 * -100)}%`,
-                              }}
-                              animate={{
-                                scale: indexInBrand === brandModalIndex ? 1.25 : 1,
-                                width: "100%",
-                                x: `${Math.max(brandModalIndex * -100, 15 * -100)}%`,
-                              }}
-                              exit={{ width: "0%" }}
-                              onClick={() => setBrandModalIndex(indexInBrand)}
-                              className={`${indexInBrand === brandModalIndex
-                                ? "z-20 rounded-md shadow shadow-black/50"
-                                : "z-10"
-                                } ${indexInBrand === 0 ? "rounded-l-md" : ""
-                                } ${indexInBrand === brandImages.length - 1 ? "rounded-r-md" : ""
-                                } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
-                            >
-                              <Image
-                                alt="thumbnail"
-                                width={180}
-                                height={120}
-                                className={`${indexInBrand === brandModalIndex
-                                  ? "brightness-110 hover:brightness-110"
-                                  : "brightness-75 contrast-125 hover:brightness-90"
-                                  } h-full transform object-cover transition`}
-                                src={src}
-                              />
-                            </motion.button>
-                          );
-                        })}
+                      {filteredBrandImages.map(({ src, width, height, id }, idx) => {
+                        const actualIndex = brandImages.findIndex(img => img.id === id);
+                        return (
+                          <motion.button
+                            key={id}
+                            initial={{
+                              width: "0%",
+                              x: `${Math.max((brandModalIndex - 1) * -100, 15 * -100)}%`,
+                            }}
+                            animate={{
+                              scale: actualIndex === brandModalIndex ? 1.25 : 1,
+                              width: "100%",
+                              x: `${Math.max(brandModalIndex * -100, 15 * -100)}%`,
+                            }}
+                            exit={{ width: "0%" }}
+                            onClick={() => setBrandModalIndex(actualIndex)}
+                            className={`${actualIndex === brandModalIndex
+                              ? "z-20 rounded-md shadow shadow-black/50"
+                              : "z-10"
+                              } ${actualIndex === 0 ? "rounded-l-md" : ""} ${actualIndex === brandImages.length - 1 ? "rounded-r-md" : ""
+                              } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
+                          >
+                            <Image
+                              alt="small photos on the bottom"
+                              width={180}
+                              height={120}
+                              className={`${actualIndex === brandModalIndex
+                                ? "brightness-110 hover:brightness-110"
+                                : "brightness-50 contrast-125 hover:brightness-75"
+                                } h-full transform object-cover transition`}
+                              src={src}
+                            />
+                          </motion.button>
+                        );
+                      })}
                     </AnimatePresence>
                   </motion.div>
                 </div>
-              </main>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
@@ -1433,7 +1445,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
             )}
 
             {/* 오른쪽: 이미지 뷰어 */}
-            <main className="flex-1 w-full sm:w-auto flex flex-col items-start justify-start relative pb-2 sm:pb-16 min-h-0 h-full sm:h-auto">
+            <main className="flex-1 w-full sm:w-auto flex flex-col items-center justify-center relative min-h-0 h-full sm:h-auto">
               {/* 이전 이미지 버튼 */}
               <button
                 type="button"
@@ -1453,12 +1465,12 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
 
                 return (
                   <div
-                    className={`flex-1 flex w-full ${isScrollable
+                    className={`flex w-full ${isScrollable
                       ? "items-start overflow-y-auto overflow-x-hidden"
-                      : "items-start"
+                      : "items-center"
                       } justify-center ${isScrollable
-                        ? "max-h-[45vh] sm:max-h-[calc(90vh-120px)] py-1"
-                        : "max-h-[45vh] sm:max-h-[calc(90vh-120px)]"
+                        ? "max-h-[90vh] py-1"
+                        : "max-h-[90vh]"
                       } px-2 sm:px-4 md:px-0`}
                   >
                     <Image
@@ -1472,7 +1484,7 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                         }`}
                       className={`${isScrollable
                         ? "w-full h-auto min-h-full"
-                        : "max-w-full max-h-full object-contain object-left-top"
+                        : "max-w-full max-h-full object-contain"
                         } rounded-lg`}
                       priority
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
@@ -1491,19 +1503,22 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                 <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
 
-              {/* 하단 썸네일 네비게이션 */}
-              <div className="relative w-full z-30 overflow-hidden bg-gradient-to-b from-black/40 to-black/95 mt-2 sm:mt-4 pb-3 sm:pb-4">
-                <motion.div
-                  initial={false}
-                  className="mx-auto mt-4 mb-2 flex aspect-[3/2] h-16 sm:h-20 max-w-5xl"
-                >
-                  <AnimatePresence initial={false}>
-                    {allImagesForModal
-                      .filter((img, idx) => {
-                        return range(allModalIndex - 15, allModalIndex + 15).includes(idx);
-                      })
-                      .map(({ src, width, height, id }, idx) => {
-                        const indexInAll = allImagesForModal.findIndex((img) => img.id === id);
+            </main>
+
+            {/* 하단 썸네일 네비게이션 */}
+            {allImagesForModal.length > 0 && (() => {
+              const filteredAllImages = allImagesForModal.filter((img) =>
+                range(allModalIndex - 15, allModalIndex + 15).includes(img.id)
+              );
+              return (
+                <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden bg-gradient-to-b from-black/0 to-black/60">
+                  <motion.div
+                    initial={false}
+                    className="mx-auto mt-6 mb-6 flex aspect-[3/2] h-14"
+                  >
+                    <AnimatePresence initial={false}>
+                      {filteredAllImages.map(({ src, width, height, id }, idx) => {
+                        const actualIndex = allImagesForModal.findIndex(img => img.id === id);
                         return (
                           <motion.button
                             key={id}
@@ -1512,36 +1527,36 @@ export default function Gallery({ images, motionImages = [] }: GalleryProps) {
                               x: `${Math.max((allModalIndex - 1) * -100, 15 * -100)}%`,
                             }}
                             animate={{
-                              scale: indexInAll === allModalIndex ? 1.25 : 1,
+                              scale: actualIndex === allModalIndex ? 1.25 : 1,
                               width: "100%",
                               x: `${Math.max(allModalIndex * -100, 15 * -100)}%`,
                             }}
                             exit={{ width: "0%" }}
-                            onClick={() => setAllModalIndex(indexInAll)}
-                            className={`${indexInAll === allModalIndex
+                            onClick={() => setAllModalIndex(actualIndex)}
+                            className={`${actualIndex === allModalIndex
                               ? "z-20 rounded-md shadow shadow-black/50"
                               : "z-10"
-                              } ${indexInAll === 0 ? "rounded-l-md" : ""
-                              } ${indexInAll === allImagesForModal.length - 1 ? "rounded-r-md" : ""
+                              } ${actualIndex === 0 ? "rounded-l-md" : ""} ${actualIndex === allImagesForModal.length - 1 ? "rounded-r-md" : ""
                               } relative inline-block w-full shrink-0 transform-gpu overflow-hidden focus:outline-none`}
                           >
                             <Image
-                              alt="thumbnail"
+                              alt="small photos on the bottom"
                               width={180}
                               height={120}
-                              className={`${indexInAll === allModalIndex
+                              className={`${actualIndex === allModalIndex
                                 ? "brightness-110 hover:brightness-110"
-                                : "brightness-75 contrast-125 hover:brightness-90"
+                                : "brightness-50 contrast-125 hover:brightness-75"
                                 } h-full transform object-cover transition`}
                               src={src}
                             />
                           </motion.button>
                         );
                       })}
-                  </AnimatePresence>
-                </motion.div>
-              </div>
-            </main>
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

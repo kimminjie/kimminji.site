@@ -199,6 +199,9 @@ export default function Carousel3D({
       {/* 상단 회색 스트립 */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gray-300 z-20"></div>
 
+      {/* 상단 고정 헤더 배경 (블러) */}
+      <div className="fixed top-0 left-0 right-0 z-30 h-20 sm:h-20 lg:h-24 backdrop-blur-md bg-[#F7F5F2]/80"></div>
+
       {/* 헤더 텍스트 */}
       <div
         className="absolute top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-20 flex flex-col max-w-[calc(100vw-2rem)]"
@@ -209,6 +212,16 @@ export default function Carousel3D({
         </div>
         <div className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-serif text-[#E45438] font-bold mt-4 sm:mt-6 lg:mt-8 leading-none break-words">
           PROJECTS
+        </div>
+      </div>
+
+      {/* 상단 고정 KIM MINJI (헤더용) */}
+      <div
+        className="fixed top-4 sm:top-6 lg:top-8 left-4 sm:left-6 lg:left-12 z-50 flex flex-col max-w-[calc(100vw-2rem)]"
+        style={{ fontFamily: uiSansFamily }}
+      >
+        <div className="ml-1 lg:ml-2 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[#E45438] font-sans font-bold tracking-wide break-words">
+          KIM MINJI
         </div>
       </div>
 
@@ -385,13 +398,13 @@ export default function Carousel3D({
         </div>
       </div>
 
-      {/* 중앙: PROFILE */}
+      {/* 중앙: PROFILE (고정) */}
       <button
         type="button"
         aria-label="Open profile"
         disabled={profileImageId === undefined}
         className={[
-          "absolute top-6 lg:top-8 left-1/2 -translate-x-1/2 z-20",
+          "fixed top-6 lg:top-8 left-1/2 -translate-x-1/2 z-50",
           headerTextButtonBase,
           "touch-manipulation min-w-[44px] min-h-[44px]",
         ].join(" ")}
@@ -405,8 +418,8 @@ export default function Carousel3D({
         PROFILE
       </button>
 
-      {/* 오른쪽: MENU 버튼 */}
-      <div className="absolute top-6 lg:top-8 right-4 sm:right-6 lg:right-12 z-30 flex flex-col items-end space-y-2">
+      {/* 오른쪽: MENU 버튼 (고정) */}
+      <div className="fixed top-6 lg:top-8 right-4 sm:right-6 lg:right-12 z-50 flex flex-col items-end space-y-2">
         <button
           type="button"
           aria-label="Open menu"
